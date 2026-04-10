@@ -33,6 +33,7 @@ export interface Expense {
   id: number;
   name: string;
   amount: number;
+  currency: string;
   category: string;
   frequency: ExpenseFrequency;
   status: ExpenseStatus;
@@ -58,6 +59,7 @@ export const CreateExpenseBodyFrequency = {
 export interface CreateExpenseBody {
   name: string;
   amount: number;
+  currency?: string;
   category: string;
   frequency: CreateExpenseBodyFrequency;
   /** @nullable */
@@ -88,6 +90,7 @@ export const UpdateExpenseBodyStatus = {
 export interface UpdateExpenseBody {
   name?: string;
   amount?: number;
+  currency?: string;
   category?: string;
   frequency?: UpdateExpenseBodyFrequency;
   status?: UpdateExpenseBodyStatus;
@@ -133,10 +136,200 @@ export interface ReceiptResponse {
   emailSent: boolean;
 }
 
+export type IncomeEntryFrequency =
+  (typeof IncomeEntryFrequency)[keyof typeof IncomeEntryFrequency];
+
+export const IncomeEntryFrequency = {
+  monthly: "monthly",
+  annually: "annually",
+  one_time: "one_time",
+} as const;
+
+export type IncomeEntryStatus =
+  (typeof IncomeEntryStatus)[keyof typeof IncomeEntryStatus];
+
+export const IncomeEntryStatus = {
+  active: "active",
+  cancelled: "cancelled",
+} as const;
+
+export interface IncomeEntry {
+  id: number;
+  name: string;
+  amount: number;
+  currency: string;
+  category: string;
+  frequency: IncomeEntryFrequency;
+  status: IncomeEntryStatus;
+  /** @nullable */
+  notes: string | null;
+  /** @nullable */
+  receivedDate: string | null;
+  /** @nullable */
+  renewalDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateIncomeBodyFrequency =
+  (typeof CreateIncomeBodyFrequency)[keyof typeof CreateIncomeBodyFrequency];
+
+export const CreateIncomeBodyFrequency = {
+  monthly: "monthly",
+  annually: "annually",
+  one_time: "one_time",
+} as const;
+
+export interface CreateIncomeBody {
+  name: string;
+  amount: number;
+  currency?: string;
+  category: string;
+  frequency: CreateIncomeBodyFrequency;
+  /** @nullable */
+  notes?: string | null;
+  /** @nullable */
+  receivedDate?: string | null;
+  /** @nullable */
+  renewalDate?: string | null;
+}
+
+export type UpdateIncomeBodyFrequency =
+  (typeof UpdateIncomeBodyFrequency)[keyof typeof UpdateIncomeBodyFrequency];
+
+export const UpdateIncomeBodyFrequency = {
+  monthly: "monthly",
+  annually: "annually",
+  one_time: "one_time",
+} as const;
+
+export type UpdateIncomeBodyStatus =
+  (typeof UpdateIncomeBodyStatus)[keyof typeof UpdateIncomeBodyStatus];
+
+export const UpdateIncomeBodyStatus = {
+  active: "active",
+  cancelled: "cancelled",
+} as const;
+
+export interface UpdateIncomeBody {
+  name?: string;
+  amount?: number;
+  currency?: string;
+  category?: string;
+  frequency?: UpdateIncomeBodyFrequency;
+  status?: UpdateIncomeBodyStatus;
+  /** @nullable */
+  notes?: string | null;
+  /** @nullable */
+  receivedDate?: string | null;
+  /** @nullable */
+  renewalDate?: string | null;
+}
+
+export interface IncomeSummary {
+  totalMonthly: number;
+  totalAnnually: number;
+  totalOneTime: number;
+  totalAllAnnualized: number;
+  byCategory: CategorySummary[];
+  activeCount: number;
+  cancelledCount: number;
+}
+
+export interface FinancialOverview {
+  totalIncome: number;
+  totalExpenses: number;
+  netPL: number;
+  isInRed: boolean;
+  annualizedIncome: number;
+  annualizedExpenses: number;
+  annualizedNetPL: number;
+  monthlyIncome: number;
+  monthlyExpenses: number;
+  monthlyNetPL: number;
+  incomeByCategory: CategorySummary[];
+  expensesByCategory: CategorySummary[];
+}
+
+export type StatementEntryType =
+  (typeof StatementEntryType)[keyof typeof StatementEntryType];
+
+export const StatementEntryType = {
+  income: "income",
+  expense: "expense",
+} as const;
+
+export interface StatementEntry {
+  id: number;
+  type: StatementEntryType;
+  name: string;
+  amount: number;
+  currency: string;
+  category: string;
+  frequency: string;
+  status: string;
+  /** @nullable */
+  date: string | null;
+  createdAt: string;
+}
+
+export interface AccountStatement {
+  /** @nullable */
+  from: string | null;
+  /** @nullable */
+  to: string | null;
+  generatedAt: string;
+  entries: StatementEntry[];
+  totalIncome: number;
+  totalExpenses: number;
+  netPL: number;
+}
+
+export interface OpenaiConversation {
+  id: number;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type OpenaiMessageRole =
+  (typeof OpenaiMessageRole)[keyof typeof OpenaiMessageRole];
+
+export const OpenaiMessageRole = {
+  user: "user",
+  assistant: "assistant",
+} as const;
+
+export interface OpenaiMessage {
+  id: number;
+  conversationId: number;
+  role: OpenaiMessageRole;
+  content: string;
+  createdAt: string;
+}
+
+export interface OpenaiConversationWithMessages {
+  id: number;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  messages: OpenaiMessage[];
+}
+
+export interface CreateOpenaiConversationBody {
+  title: string;
+}
+
+export interface SendOpenaiMessageBody {
+  content: string;
+}
+
 export type ListExpensesParams = {
   category?: string;
   frequency?: ListExpensesFrequency;
   status?: ListExpensesStatus;
+  from?: string;
+  to?: string;
 };
 
 export type ListExpensesFrequency =
@@ -155,3 +348,48 @@ export const ListExpensesStatus = {
   active: "active",
   cancelled: "cancelled",
 } as const;
+
+export type GetExpenseSummaryParams = {
+  from?: string;
+  to?: string;
+};
+
+export type ListIncomeParams = {
+  category?: string;
+  frequency?: ListIncomeFrequency;
+  status?: ListIncomeStatus;
+  from?: string;
+  to?: string;
+};
+
+export type ListIncomeFrequency =
+  (typeof ListIncomeFrequency)[keyof typeof ListIncomeFrequency];
+
+export const ListIncomeFrequency = {
+  monthly: "monthly",
+  annually: "annually",
+  one_time: "one_time",
+} as const;
+
+export type ListIncomeStatus =
+  (typeof ListIncomeStatus)[keyof typeof ListIncomeStatus];
+
+export const ListIncomeStatus = {
+  active: "active",
+  cancelled: "cancelled",
+} as const;
+
+export type GetIncomeSummaryParams = {
+  from?: string;
+  to?: string;
+};
+
+export type GetFinancialOverviewParams = {
+  from?: string;
+  to?: string;
+};
+
+export type GetAccountStatementParams = {
+  from?: string;
+  to?: string;
+};

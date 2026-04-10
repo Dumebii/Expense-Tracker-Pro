@@ -10,6 +10,7 @@ import type { CreateExpenseBodyFrequency } from "./createExpenseBodyFrequency";
 export interface CreateExpenseBody {
   name: string;
   amount: number;
+  currency?: string;
   category: string;
   frequency: CreateExpenseBodyFrequency;
   /** @nullable */

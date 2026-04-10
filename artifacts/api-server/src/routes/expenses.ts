@@ -19,6 +19,7 @@ function mapExpense(row: typeof expensesTable.$inferSelect) {
     id: row.id,
     name: row.name,
     amount: Number(row.amount),
+    currency: row.currency,
     category: row.category,
     frequency: row.frequency,
     status: row.status,
@@ -124,13 +125,14 @@ router.post("/expenses", async (req, res): Promise<void> => {
     return;
   }
 
-  const { name, amount, category, frequency, notes, renewalDate, purchaseDate } = parsed.data;
+  const { name, amount, currency, category, frequency, notes, renewalDate, purchaseDate } = parsed.data;
 
   const [expense] = await db
     .insert(expensesTable)
     .values({
       name,
       amount: String(amount),
+      currency: currency ?? "USD",
       category,
       frequency: frequency as "monthly" | "annually" | "one_time",
       notes: notes ?? null,
@@ -178,6 +180,7 @@ router.patch("/expenses/:id", async (req, res): Promise<void> => {
   const updateData: Partial<typeof expensesTable.$inferInsert> = {};
   if (parsed.data.name !== undefined) updateData.name = parsed.data.name;
   if (parsed.data.amount !== undefined) updateData.amount = String(parsed.data.amount);
+  if (parsed.data.currency !== undefined) updateData.currency = parsed.data.currency;
   if (parsed.data.category !== undefined) updateData.category = parsed.data.category;
   if (parsed.data.frequency !== undefined) updateData.frequency = parsed.data.frequency as "monthly" | "annually" | "one_time";
   if (parsed.data.status !== undefined) updateData.status = parsed.data.status as "active" | "cancelled";

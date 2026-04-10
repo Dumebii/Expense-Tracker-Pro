@@ -12,15 +12,20 @@ tags:
     description: Health operations
   - name: expenses
     description: Expense operations
+  - name: income
+    description: Income operations
   - name: receipts
     description: Receipt operations
+  - name: financials
+    description: P&L and account statements
+  - name: openai
+    description: OpenAI AI chat operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -51,6 +56,16 @@ paths:
           schema:
             type: string
             enum: [active, cancelled]
+          required: false
+        - in: query
+          name: from
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: to
+          schema:
+            type: string
           required: false
       responses:
         "200":
@@ -90,6 +105,17 @@ paths:
       operationId: getExpenseSummary
       tags: [expenses]
       summary: Get expense totals grouped by frequency and category
+      parameters:
+        - in: query
+          name: from
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: to
+          schema:
+            type: string
+          required: false
       responses:
         "200":
           description: Summary totals
@@ -236,6 +262,360 @@ paths:
                 items:
                   $ref: "#/components/schemas/Receipt"
 
+  /income:
+    get:
+      operationId: listIncome
+      tags: [income]
+      summary: List all income entries
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: frequency
+          schema:
+            type: string
+            enum: [monthly, annually, one_time]
+          required: false
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, cancelled]
+          required: false
+        - in: query
+          name: from
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: to
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: List of income entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IncomeEntry"
+    post:
+      operationId: createIncome
+      tags: [income]
+      summary: Create a new income entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateIncomeBody"
+      responses:
+        "201":
+          description: Created income entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncomeEntry"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /income/summary:
+    get:
+      operationId: getIncomeSummary
+      tags: [income]
+      summary: Get income totals grouped by frequency and category
+      parameters:
+        - in: query
+          name: from
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: to
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Income summary totals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncomeSummary"
+
+  /income/{id}:
+    get:
+      operationId: getIncomeEntry
+      tags: [income]
+      summary: Get a single income entry
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Income entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncomeEntry"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateIncomeEntry
+      tags: [income]
+      summary: Update an income entry
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateIncomeBody"
+      responses:
+        "200":
+          description: Updated income entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncomeEntry"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteIncomeEntry
+      tags: [income]
+      summary: Delete an income entry permanently
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /income/{id}/cancel:
+    patch:
+      operationId: cancelIncomeEntry
+      tags: [income]
+      summary: Cancel an income entry
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Cancelled income entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncomeEntry"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /financials/overview:
+    get:
+      operationId: getFinancialOverview
+      tags: [financials]
+      summary: Get P&L overview comparing money in vs money out
+      parameters:
+        - in: query
+          name: from
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: to
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Financial overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinancialOverview"
+
+  /financials/statement:
+    get:
+      operationId: getAccountStatement
+      tags: [financials]
+      summary: Get account statement with all transactions
+      parameters:
+        - in: query
+          name: from
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: to
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Account statement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountStatement"
+
+  /openai/conversations:
+    get:
+      operationId: listOpenaiConversations
+      tags: [openai]
+      summary: List all conversations
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpenaiConversation"
+    post:
+      operationId: createOpenaiConversation
+      tags: [openai]
+      summary: Create a new conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOpenaiConversationBody"
+      responses:
+        "201":
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiConversation"
+
+  /openai/conversations/{id}:
+    get:
+      operationId: getOpenaiConversation
+      tags: [openai]
+      summary: Get conversation with messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiConversationWithMessages"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteOpenaiConversation
+      tags: [openai]
+      summary: Delete a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /openai/conversations/{id}/messages:
+    get:
+      operationId: listOpenaiMessages
+      tags: [openai]
+      summary: List messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpenaiMessage"
+    post:
+      operationId: sendOpenaiMessage
+      tags: [openai]
+      summary: Send a text message and receive a streaming text response
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendOpenaiMessageBody"
+      responses:
+        "200":
+          description: SSE stream of assistant text chunks
+          content:
+            text/event-stream: {}
+
 components:
   schemas:
     HealthStatus:
@@ -263,6 +643,8 @@ components:
           type: string
         amount:
           type: number
+        currency:
+          type: string
         category:
           type: string
         frequency:
@@ -285,6 +667,7 @@ components:
         - id
         - name
         - amount
+        - currency
         - category
         - frequency
         - status
@@ -301,6 +684,8 @@ components:
           type: string
         amount:
           type: number
+        currency:
+          type: string
         category:
           type: string
         frequency:
@@ -325,6 +710,8 @@ components:
           type: string
         amount:
           type: number
+        currency:
+          type: string
         category:
           type: string
         frequency:
@@ -427,3 +814,309 @@ components:
         - receipt
         - message
         - emailSent
+
+    IncomeEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        category:
+          type: string
+        frequency:
+          type: string
+          enum: [monthly, annually, one_time]
+        status:
+          type: string
+          enum: [active, cancelled]
+        notes:
+          type: ["string", "null"]
+        receivedDate:
+          type: ["string", "null"]
+        renewalDate:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - name
+        - amount
+        - currency
+        - category
+        - frequency
+        - status
+        - notes
+        - receivedDate
+        - renewalDate
+        - createdAt
+        - updatedAt
+
+    CreateIncomeBody:
+      type: object
+      properties:
+        name:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        category:
+          type: string
+        frequency:
+          type: string
+          enum: [monthly, annually, one_time]
+        notes:
+          type: ["string", "null"]
+        receivedDate:
+          type: ["string", "null"]
+        renewalDate:
+          type: ["string", "null"]
+      required:
+        - name
+        - amount
+        - category
+        - frequency
+
+    UpdateIncomeBody:
+      type: object
+      properties:
+        name:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        category:
+          type: string
+        frequency:
+          type: string
+          enum: [monthly, annually, one_time]
+        status:
+          type: string
+          enum: [active, cancelled]
+        notes:
+          type: ["string", "null"]
+        receivedDate:
+          type: ["string", "null"]
+        renewalDate:
+          type: ["string", "null"]
+
+    IncomeSummary:
+      type: object
+      properties:
+        totalMonthly:
+          type: number
+        totalAnnually:
+          type: number
+        totalOneTime:
+          type: number
+        totalAllAnnualized:
+          type: number
+        byCategory:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategorySummary"
+        activeCount:
+          type: integer
+        cancelledCount:
+          type: integer
+      required:
+        - totalMonthly
+        - totalAnnually
+        - totalOneTime
+        - totalAllAnnualized
+        - byCategory
+        - activeCount
+        - cancelledCount
+
+    FinancialOverview:
+      type: object
+      properties:
+        totalIncome:
+          type: number
+        totalExpenses:
+          type: number
+        netPL:
+          type: number
+        isInRed:
+          type: boolean
+        annualizedIncome:
+          type: number
+        annualizedExpenses:
+          type: number
+        annualizedNetPL:
+          type: number
+        monthlyIncome:
+          type: number
+        monthlyExpenses:
+          type: number
+        monthlyNetPL:
+          type: number
+        incomeByCategory:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategorySummary"
+        expensesByCategory:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategorySummary"
+      required:
+        - totalIncome
+        - totalExpenses
+        - netPL
+        - isInRed
+        - annualizedIncome
+        - annualizedExpenses
+        - annualizedNetPL
+        - monthlyIncome
+        - monthlyExpenses
+        - monthlyNetPL
+        - incomeByCategory
+        - expensesByCategory
+
+    StatementEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [income, expense]
+        name:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        category:
+          type: string
+        frequency:
+          type: string
+        status:
+          type: string
+        date:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - type
+        - name
+        - amount
+        - currency
+        - category
+        - frequency
+        - status
+        - date
+        - createdAt
+
+    AccountStatement:
+      type: object
+      properties:
+        from:
+          type: ["string", "null"]
+        to:
+          type: ["string", "null"]
+        generatedAt:
+          type: string
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatementEntry"
+        totalIncome:
+          type: number
+        totalExpenses:
+          type: number
+        netPL:
+          type: number
+      required:
+        - from
+        - to
+        - generatedAt
+        - entries
+        - totalIncome
+        - totalExpenses
+        - netPL
+
+    OpenaiConversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - title
+        - createdAt
+        - updatedAt
+
+    OpenaiConversationWithMessages:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/OpenaiMessage"
+      required:
+        - id
+        - title
+        - createdAt
+        - updatedAt
+        - messages
+
+    OpenaiMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - conversationId
+        - role
+        - content
+        - createdAt
+
+    CreateOpenaiConversationBody:
+      type: object
+      properties:
+        title:
+          type: string
+      required:
+        - title
+
+    SendOpenaiMessageBody:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+        - content

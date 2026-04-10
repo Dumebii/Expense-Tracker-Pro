@@ -12,4 +12,6 @@ export type ListExpensesParams = {
   category?: string;
   frequency?: ListExpensesFrequency;
   status?: ListExpensesStatus;
+  from?: string;
+  to?: string;
 };

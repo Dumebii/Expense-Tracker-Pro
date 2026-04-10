@@ -8,7 +8,6 @@
 import * as zod from "zod";
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -22,12 +21,15 @@ export const ListExpensesQueryParams = zod.object({
   category: zod.coerce.string().optional(),
   frequency: zod.enum(["monthly", "annually", "one_time"]).optional(),
   status: zod.enum(["active", "cancelled"]).optional(),
+  from: zod.coerce.string().optional(),
+  to: zod.coerce.string().optional(),
 });
 
 export const ListExpensesResponseItem = zod.object({
   id: zod.number(),
   name: zod.string(),
   amount: zod.number(),
+  currency: zod.string(),
   category: zod.string(),
   frequency: zod.enum(["monthly", "annually", "one_time"]),
   status: zod.enum(["active", "cancelled"]),
@@ -45,6 +47,7 @@ export const ListExpensesResponse = zod.array(ListExpensesResponseItem);
 export const CreateExpenseBody = zod.object({
   name: zod.string(),
   amount: zod.number(),
+  currency: zod.string().optional(),
   category: zod.string(),
   frequency: zod.enum(["monthly", "annually", "one_time"]),
   notes: zod.string().nullish(),
@@ -55,6 +58,11 @@ export const CreateExpenseBody = zod.object({
 /**
  * @summary Get expense totals grouped by frequency and category
  */
+export const GetExpenseSummaryQueryParams = zod.object({
+  from: zod.coerce.string().optional(),
+  to: zod.coerce.string().optional(),
+});
+
 export const GetExpenseSummaryResponse = zod.object({
   totalMonthly: zod.number(),
   totalAnnually: zod.number(),
@@ -82,6 +90,7 @@ export const GetExpenseResponse = zod.object({
   id: zod.number(),
   name: zod.string(),
   amount: zod.number(),
+  currency: zod.string(),
   category: zod.string(),
   frequency: zod.enum(["monthly", "annually", "one_time"]),
   status: zod.enum(["active", "cancelled"]),
@@ -102,6 +111,7 @@ export const UpdateExpenseParams = zod.object({
 export const UpdateExpenseBody = zod.object({
   name: zod.string().optional(),
   amount: zod.number().optional(),
+  currency: zod.string().optional(),
   category: zod.string().optional(),
   frequency: zod.enum(["monthly", "annually", "one_time"]).optional(),
   status: zod.enum(["active", "cancelled"]).optional(),
@@ -114,6 +124,7 @@ export const UpdateExpenseResponse = zod.object({
   id: zod.number(),
   name: zod.string(),
   amount: zod.number(),
+  currency: zod.string(),
   category: zod.string(),
   frequency: zod.enum(["monthly", "annually", "one_time"]),
   status: zod.enum(["active", "cancelled"]),
@@ -142,6 +153,7 @@ export const CancelExpenseResponse = zod.object({
   id: zod.number(),
   name: zod.string(),
   amount: zod.number(),
+  currency: zod.string(),
   category: zod.string(),
   frequency: zod.enum(["monthly", "annually", "one_time"]),
   status: zod.enum(["active", "cancelled"]),
@@ -190,3 +202,298 @@ export const ListReceiptsResponseItem = zod.object({
   expenseFrequency: zod.string(),
 });
 export const ListReceiptsResponse = zod.array(ListReceiptsResponseItem);
+
+/**
+ * @summary List all income entries
+ */
+export const ListIncomeQueryParams = zod.object({
+  category: zod.coerce.string().optional(),
+  frequency: zod.enum(["monthly", "annually", "one_time"]).optional(),
+  status: zod.enum(["active", "cancelled"]).optional(),
+  from: zod.coerce.string().optional(),
+  to: zod.coerce.string().optional(),
+});
+
+export const ListIncomeResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  amount: zod.number(),
+  currency: zod.string(),
+  category: zod.string(),
+  frequency: zod.enum(["monthly", "annually", "one_time"]),
+  status: zod.enum(["active", "cancelled"]),
+  notes: zod.string().nullable(),
+  receivedDate: zod.string().nullable(),
+  renewalDate: zod.string().nullable(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+export const ListIncomeResponse = zod.array(ListIncomeResponseItem);
+
+/**
+ * @summary Create a new income entry
+ */
+export const CreateIncomeBody = zod.object({
+  name: zod.string(),
+  amount: zod.number(),
+  currency: zod.string().optional(),
+  category: zod.string(),
+  frequency: zod.enum(["monthly", "annually", "one_time"]),
+  notes: zod.string().nullish(),
+  receivedDate: zod.string().nullish(),
+  renewalDate: zod.string().nullish(),
+});
+
+/**
+ * @summary Get income totals grouped by frequency and category
+ */
+export const GetIncomeSummaryQueryParams = zod.object({
+  from: zod.coerce.string().optional(),
+  to: zod.coerce.string().optional(),
+});
+
+export const GetIncomeSummaryResponse = zod.object({
+  totalMonthly: zod.number(),
+  totalAnnually: zod.number(),
+  totalOneTime: zod.number(),
+  totalAllAnnualized: zod.number(),
+  byCategory: zod.array(
+    zod.object({
+      category: zod.string(),
+      total: zod.number(),
+      count: zod.number(),
+    }),
+  ),
+  activeCount: zod.number(),
+  cancelledCount: zod.number(),
+});
+
+/**
+ * @summary Get a single income entry
+ */
+export const GetIncomeEntryParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetIncomeEntryResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  amount: zod.number(),
+  currency: zod.string(),
+  category: zod.string(),
+  frequency: zod.enum(["monthly", "annually", "one_time"]),
+  status: zod.enum(["active", "cancelled"]),
+  notes: zod.string().nullable(),
+  receivedDate: zod.string().nullable(),
+  renewalDate: zod.string().nullable(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+
+/**
+ * @summary Update an income entry
+ */
+export const UpdateIncomeEntryParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateIncomeEntryBody = zod.object({
+  name: zod.string().optional(),
+  amount: zod.number().optional(),
+  currency: zod.string().optional(),
+  category: zod.string().optional(),
+  frequency: zod.enum(["monthly", "annually", "one_time"]).optional(),
+  status: zod.enum(["active", "cancelled"]).optional(),
+  notes: zod.string().nullish(),
+  receivedDate: zod.string().nullish(),
+  renewalDate: zod.string().nullish(),
+});
+
+export const UpdateIncomeEntryResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  amount: zod.number(),
+  currency: zod.string(),
+  category: zod.string(),
+  frequency: zod.enum(["monthly", "annually", "one_time"]),
+  status: zod.enum(["active", "cancelled"]),
+  notes: zod.string().nullable(),
+  receivedDate: zod.string().nullable(),
+  renewalDate: zod.string().nullable(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+
+/**
+ * @summary Delete an income entry permanently
+ */
+export const DeleteIncomeEntryParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Cancel an income entry
+ */
+export const CancelIncomeEntryParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const CancelIncomeEntryResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  amount: zod.number(),
+  currency: zod.string(),
+  category: zod.string(),
+  frequency: zod.enum(["monthly", "annually", "one_time"]),
+  status: zod.enum(["active", "cancelled"]),
+  notes: zod.string().nullable(),
+  receivedDate: zod.string().nullable(),
+  renewalDate: zod.string().nullable(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+
+/**
+ * @summary Get P&L overview comparing money in vs money out
+ */
+export const GetFinancialOverviewQueryParams = zod.object({
+  from: zod.coerce.string().optional(),
+  to: zod.coerce.string().optional(),
+});
+
+export const GetFinancialOverviewResponse = zod.object({
+  totalIncome: zod.number(),
+  totalExpenses: zod.number(),
+  netPL: zod.number(),
+  isInRed: zod.boolean(),
+  annualizedIncome: zod.number(),
+  annualizedExpenses: zod.number(),
+  annualizedNetPL: zod.number(),
+  monthlyIncome: zod.number(),
+  monthlyExpenses: zod.number(),
+  monthlyNetPL: zod.number(),
+  incomeByCategory: zod.array(
+    zod.object({
+      category: zod.string(),
+      total: zod.number(),
+      count: zod.number(),
+    }),
+  ),
+  expensesByCategory: zod.array(
+    zod.object({
+      category: zod.string(),
+      total: zod.number(),
+      count: zod.number(),
+    }),
+  ),
+});
+
+/**
+ * @summary Get account statement with all transactions
+ */
+export const GetAccountStatementQueryParams = zod.object({
+  from: zod.coerce.string().optional(),
+  to: zod.coerce.string().optional(),
+});
+
+export const GetAccountStatementResponse = zod.object({
+  from: zod.string().nullable(),
+  to: zod.string().nullable(),
+  generatedAt: zod.string(),
+  entries: zod.array(
+    zod.object({
+      id: zod.number(),
+      type: zod.enum(["income", "expense"]),
+      name: zod.string(),
+      amount: zod.number(),
+      currency: zod.string(),
+      category: zod.string(),
+      frequency: zod.string(),
+      status: zod.string(),
+      date: zod.string().nullable(),
+      createdAt: zod.string(),
+    }),
+  ),
+  totalIncome: zod.number(),
+  totalExpenses: zod.number(),
+  netPL: zod.number(),
+});
+
+/**
+ * @summary List all conversations
+ */
+export const ListOpenaiConversationsResponseItem = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+export const ListOpenaiConversationsResponse = zod.array(
+  ListOpenaiConversationsResponseItem,
+);
+
+/**
+ * @summary Create a new conversation
+ */
+export const CreateOpenaiConversationBody = zod.object({
+  title: zod.string(),
+});
+
+/**
+ * @summary Get conversation with messages
+ */
+export const GetOpenaiConversationParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetOpenaiConversationResponse = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+  messages: zod.array(
+    zod.object({
+      id: zod.number(),
+      conversationId: zod.number(),
+      role: zod.enum(["user", "assistant"]),
+      content: zod.string(),
+      createdAt: zod.string(),
+    }),
+  ),
+});
+
+/**
+ * @summary Delete a conversation
+ */
+export const DeleteOpenaiConversationParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary List messages in a conversation
+ */
+export const ListOpenaiMessagesParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ListOpenaiMessagesResponseItem = zod.object({
+  id: zod.number(),
+  conversationId: zod.number(),
+  role: zod.enum(["user", "assistant"]),
+  content: zod.string(),
+  createdAt: zod.string(),
+});
+export const ListOpenaiMessagesResponse = zod.array(
+  ListOpenaiMessagesResponseItem,
+);
+
+/**
+ * @summary Send a text message and receive a streaming text response
+ */
+export const SendOpenaiMessageParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const SendOpenaiMessageBody = zod.object({
+  content: zod.string(),
+});

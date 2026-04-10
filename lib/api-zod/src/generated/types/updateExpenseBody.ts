@@ -11,6 +11,7 @@ import type { UpdateExpenseBodyStatus } from "./updateExpenseBodyStatus";
 export interface UpdateExpenseBody {
   name?: string;
   amount?: number;
+  currency?: string;
   category?: string;
   frequency?: UpdateExpenseBodyFrequency;
   status?: UpdateExpenseBodyStatus;

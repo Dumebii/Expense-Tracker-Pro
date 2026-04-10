@@ -9,6 +9,7 @@ export const expensesTable = pgTable("expenses", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("USD"),
   category: text("category").notNull(),
   frequency: frequencyEnum("frequency").notNull().default("monthly"),
   status: statusEnum("status").notNull().default("active"),
