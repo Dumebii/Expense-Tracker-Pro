@@ -10,6 +10,10 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: expenses
+    description: Expense operations
+  - name: receipts
+    description: Receipt operations
 paths:
   /healthz:
     get:
@@ -24,6 +28,214 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /expenses:
+    get:
+      operationId: listExpenses
+      tags: [expenses]
+      summary: List all expenses
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: frequency
+          schema:
+            type: string
+            enum: [monthly, annually, one_time]
+          required: false
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, cancelled]
+          required: false
+      responses:
+        "200":
+          description: List of expenses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Expense"
+    post:
+      operationId: createExpense
+      tags: [expenses]
+      summary: Create a new expense
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateExpenseBody"
+      responses:
+        "201":
+          description: Created expense
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /expenses/summary:
+    get:
+      operationId: getExpenseSummary
+      tags: [expenses]
+      summary: Get expense totals grouped by frequency and category
+      responses:
+        "200":
+          description: Summary totals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseSummary"
+
+  /expenses/{id}:
+    get:
+      operationId: getExpense
+      tags: [expenses]
+      summary: Get a single expense
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Expense
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateExpense
+      tags: [expenses]
+      summary: Update an expense
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateExpenseBody"
+      responses:
+        "200":
+          description: Updated expense
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteExpense
+      tags: [expenses]
+      summary: Delete an expense permanently
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /expenses/{id}/cancel:
+    patch:
+      operationId: cancelExpense
+      tags: [expenses]
+      summary: Cancel (deactivate) an expense
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Cancelled expense
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /expenses/{id}/receipt:
+    post:
+      operationId: generateReceipt
+      tags: [receipts]
+      summary: Generate a receipt for an expense and email it
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Receipt generated and emailed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceiptResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /receipts:
+    get:
+      operationId: listReceipts
+      tags: [receipts]
+      summary: List all generated receipts
+      responses:
+        "200":
+          description: List of receipts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Receipt"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +246,184 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Expense:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        amount:
+          type: number
+        category:
+          type: string
+        frequency:
+          type: string
+          enum: [monthly, annually, one_time]
+        status:
+          type: string
+          enum: [active, cancelled]
+        notes:
+          type: ["string", "null"]
+        renewalDate:
+          type: ["string", "null"]
+        purchaseDate:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - name
+        - amount
+        - category
+        - frequency
+        - status
+        - notes
+        - renewalDate
+        - purchaseDate
+        - createdAt
+        - updatedAt
+
+    CreateExpenseBody:
+      type: object
+      properties:
+        name:
+          type: string
+        amount:
+          type: number
+        category:
+          type: string
+        frequency:
+          type: string
+          enum: [monthly, annually, one_time]
+        notes:
+          type: ["string", "null"]
+        renewalDate:
+          type: ["string", "null"]
+        purchaseDate:
+          type: ["string", "null"]
+      required:
+        - name
+        - amount
+        - category
+        - frequency
+
+    UpdateExpenseBody:
+      type: object
+      properties:
+        name:
+          type: string
+        amount:
+          type: number
+        category:
+          type: string
+        frequency:
+          type: string
+          enum: [monthly, annually, one_time]
+        status:
+          type: string
+          enum: [active, cancelled]
+        notes:
+          type: ["string", "null"]
+        renewalDate:
+          type: ["string", "null"]
+        purchaseDate:
+          type: ["string", "null"]
+
+    ExpenseSummary:
+      type: object
+      properties:
+        totalMonthly:
+          type: number
+        totalAnnually:
+          type: number
+        totalOneTime:
+          type: number
+        totalAllAnnualized:
+          type: number
+        byCategory:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategorySummary"
+        activeCount:
+          type: integer
+        cancelledCount:
+          type: integer
+      required:
+        - totalMonthly
+        - totalAnnually
+        - totalOneTime
+        - totalAllAnnualized
+        - byCategory
+        - activeCount
+        - cancelledCount
+
+    CategorySummary:
+      type: object
+      properties:
+        category:
+          type: string
+        total:
+          type: number
+        count:
+          type: integer
+      required:
+        - category
+        - total
+        - count
+
+    Receipt:
+      type: object
+      properties:
+        id:
+          type: integer
+        expenseId:
+          type: integer
+        receiptNumber:
+          type: string
+        emailedTo:
+          type: string
+        generatedAt:
+          type: string
+        expenseName:
+          type: string
+        expenseAmount:
+          type: number
+        expenseCategory:
+          type: string
+        expenseFrequency:
+          type: string
+      required:
+        - id
+        - expenseId
+        - receiptNumber
+        - emailedTo
+        - generatedAt
+        - expenseName
+        - expenseAmount
+        - expenseCategory
+        - expenseFrequency
+
+    ReceiptResponse:
+      type: object
+      properties:
+        receipt:
+          $ref: "#/components/schemas/Receipt"
+        message:
+          type: string
+        emailSent:
+          type: boolean
+      required:
+        - receipt
+        - message
+        - emailSent

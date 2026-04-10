@@ -6,4 +6,20 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./categorySummary";
+export * from "./createExpenseBody";
+export * from "./createExpenseBodyFrequency";
+export * from "./errorResponse";
+export * from "./expense";
+export * from "./expenseFrequency";
+export * from "./expenseStatus";
+export * from "./expenseSummary";
 export * from "./healthStatus";
+export * from "./listExpensesFrequency";
+export * from "./listExpensesParams";
+export * from "./listExpensesStatus";
+export * from "./receipt";
+export * from "./receiptResponse";
+export * from "./updateExpenseBody";
+export * from "./updateExpenseBodyFrequency";
+export * from "./updateExpenseBodyStatus";

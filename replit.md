@@ -25,3 +25,20 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+
+## Artifacts
+
+### Expense Tracker (`artifacts/expense-tracker`)
+- Frontend React + Vite app at path `/`
+- Tracks business expenses by category, frequency (monthly/annually/one-time), and status
+- Features: add, edit, cancel, delete expenses; generate receipts emailed to okolodumebi@gmail.com
+- Shows totals: monthly, annual, one-time, and annualized run rate
+- Renewal date field stored and displayed per expense
+
+### API Server (`artifacts/api-server`)
+- Express 5 backend at `/api`
+- Routes: `/expenses`, `/expenses/summary`, `/expenses/:id`, `/expenses/:id/cancel`, `/expenses/:id/receipt`, `/receipts`
+
+## Database Schema (`lib/db/src/schema/`)
+- `expenses` table: id, name, amount, category, frequency (enum), status (enum), notes, renewal_date, purchase_date, created_at, updated_at
+- `receipts` table: id, expense_id, receipt_number, emailed_to, expense_name, expense_amount, expense_category, expense_frequency, generated_at

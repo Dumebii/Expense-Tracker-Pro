@@ -14,3 +14,179 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary List all expenses
+ */
+export const ListExpensesQueryParams = zod.object({
+  category: zod.coerce.string().optional(),
+  frequency: zod.enum(["monthly", "annually", "one_time"]).optional(),
+  status: zod.enum(["active", "cancelled"]).optional(),
+});
+
+export const ListExpensesResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  amount: zod.number(),
+  category: zod.string(),
+  frequency: zod.enum(["monthly", "annually", "one_time"]),
+  status: zod.enum(["active", "cancelled"]),
+  notes: zod.string().nullable(),
+  renewalDate: zod.string().nullable(),
+  purchaseDate: zod.string().nullable(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+export const ListExpensesResponse = zod.array(ListExpensesResponseItem);
+
+/**
+ * @summary Create a new expense
+ */
+export const CreateExpenseBody = zod.object({
+  name: zod.string(),
+  amount: zod.number(),
+  category: zod.string(),
+  frequency: zod.enum(["monthly", "annually", "one_time"]),
+  notes: zod.string().nullish(),
+  renewalDate: zod.string().nullish(),
+  purchaseDate: zod.string().nullish(),
+});
+
+/**
+ * @summary Get expense totals grouped by frequency and category
+ */
+export const GetExpenseSummaryResponse = zod.object({
+  totalMonthly: zod.number(),
+  totalAnnually: zod.number(),
+  totalOneTime: zod.number(),
+  totalAllAnnualized: zod.number(),
+  byCategory: zod.array(
+    zod.object({
+      category: zod.string(),
+      total: zod.number(),
+      count: zod.number(),
+    }),
+  ),
+  activeCount: zod.number(),
+  cancelledCount: zod.number(),
+});
+
+/**
+ * @summary Get a single expense
+ */
+export const GetExpenseParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetExpenseResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  amount: zod.number(),
+  category: zod.string(),
+  frequency: zod.enum(["monthly", "annually", "one_time"]),
+  status: zod.enum(["active", "cancelled"]),
+  notes: zod.string().nullable(),
+  renewalDate: zod.string().nullable(),
+  purchaseDate: zod.string().nullable(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+
+/**
+ * @summary Update an expense
+ */
+export const UpdateExpenseParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateExpenseBody = zod.object({
+  name: zod.string().optional(),
+  amount: zod.number().optional(),
+  category: zod.string().optional(),
+  frequency: zod.enum(["monthly", "annually", "one_time"]).optional(),
+  status: zod.enum(["active", "cancelled"]).optional(),
+  notes: zod.string().nullish(),
+  renewalDate: zod.string().nullish(),
+  purchaseDate: zod.string().nullish(),
+});
+
+export const UpdateExpenseResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  amount: zod.number(),
+  category: zod.string(),
+  frequency: zod.enum(["monthly", "annually", "one_time"]),
+  status: zod.enum(["active", "cancelled"]),
+  notes: zod.string().nullable(),
+  renewalDate: zod.string().nullable(),
+  purchaseDate: zod.string().nullable(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+
+/**
+ * @summary Delete an expense permanently
+ */
+export const DeleteExpenseParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Cancel (deactivate) an expense
+ */
+export const CancelExpenseParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const CancelExpenseResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  amount: zod.number(),
+  category: zod.string(),
+  frequency: zod.enum(["monthly", "annually", "one_time"]),
+  status: zod.enum(["active", "cancelled"]),
+  notes: zod.string().nullable(),
+  renewalDate: zod.string().nullable(),
+  purchaseDate: zod.string().nullable(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+
+/**
+ * @summary Generate a receipt for an expense and email it
+ */
+export const GenerateReceiptParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GenerateReceiptResponse = zod.object({
+  receipt: zod.object({
+    id: zod.number(),
+    expenseId: zod.number(),
+    receiptNumber: zod.string(),
+    emailedTo: zod.string(),
+    generatedAt: zod.string(),
+    expenseName: zod.string(),
+    expenseAmount: zod.number(),
+    expenseCategory: zod.string(),
+    expenseFrequency: zod.string(),
+  }),
+  message: zod.string(),
+  emailSent: zod.boolean(),
+});
+
+/**
+ * @summary List all generated receipts
+ */
+export const ListReceiptsResponseItem = zod.object({
+  id: zod.number(),
+  expenseId: zod.number(),
+  receiptNumber: zod.string(),
+  emailedTo: zod.string(),
+  generatedAt: zod.string(),
+  expenseName: zod.string(),
+  expenseAmount: zod.number(),
+  expenseCategory: zod.string(),
+  expenseFrequency: zod.string(),
+});
+export const ListReceiptsResponse = zod.array(ListReceiptsResponseItem);

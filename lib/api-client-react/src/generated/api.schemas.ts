@@ -8,3 +8,150 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface ErrorResponse {
+  error: string;
+}
+
+export type ExpenseFrequency =
+  (typeof ExpenseFrequency)[keyof typeof ExpenseFrequency];
+
+export const ExpenseFrequency = {
+  monthly: "monthly",
+  annually: "annually",
+  one_time: "one_time",
+} as const;
+
+export type ExpenseStatus = (typeof ExpenseStatus)[keyof typeof ExpenseStatus];
+
+export const ExpenseStatus = {
+  active: "active",
+  cancelled: "cancelled",
+} as const;
+
+export interface Expense {
+  id: number;
+  name: string;
+  amount: number;
+  category: string;
+  frequency: ExpenseFrequency;
+  status: ExpenseStatus;
+  /** @nullable */
+  notes: string | null;
+  /** @nullable */
+  renewalDate: string | null;
+  /** @nullable */
+  purchaseDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateExpenseBodyFrequency =
+  (typeof CreateExpenseBodyFrequency)[keyof typeof CreateExpenseBodyFrequency];
+
+export const CreateExpenseBodyFrequency = {
+  monthly: "monthly",
+  annually: "annually",
+  one_time: "one_time",
+} as const;
+
+export interface CreateExpenseBody {
+  name: string;
+  amount: number;
+  category: string;
+  frequency: CreateExpenseBodyFrequency;
+  /** @nullable */
+  notes?: string | null;
+  /** @nullable */
+  renewalDate?: string | null;
+  /** @nullable */
+  purchaseDate?: string | null;
+}
+
+export type UpdateExpenseBodyFrequency =
+  (typeof UpdateExpenseBodyFrequency)[keyof typeof UpdateExpenseBodyFrequency];
+
+export const UpdateExpenseBodyFrequency = {
+  monthly: "monthly",
+  annually: "annually",
+  one_time: "one_time",
+} as const;
+
+export type UpdateExpenseBodyStatus =
+  (typeof UpdateExpenseBodyStatus)[keyof typeof UpdateExpenseBodyStatus];
+
+export const UpdateExpenseBodyStatus = {
+  active: "active",
+  cancelled: "cancelled",
+} as const;
+
+export interface UpdateExpenseBody {
+  name?: string;
+  amount?: number;
+  category?: string;
+  frequency?: UpdateExpenseBodyFrequency;
+  status?: UpdateExpenseBodyStatus;
+  /** @nullable */
+  notes?: string | null;
+  /** @nullable */
+  renewalDate?: string | null;
+  /** @nullable */
+  purchaseDate?: string | null;
+}
+
+export interface CategorySummary {
+  category: string;
+  total: number;
+  count: number;
+}
+
+export interface ExpenseSummary {
+  totalMonthly: number;
+  totalAnnually: number;
+  totalOneTime: number;
+  totalAllAnnualized: number;
+  byCategory: CategorySummary[];
+  activeCount: number;
+  cancelledCount: number;
+}
+
+export interface Receipt {
+  id: number;
+  expenseId: number;
+  receiptNumber: string;
+  emailedTo: string;
+  generatedAt: string;
+  expenseName: string;
+  expenseAmount: number;
+  expenseCategory: string;
+  expenseFrequency: string;
+}
+
+export interface ReceiptResponse {
+  receipt: Receipt;
+  message: string;
+  emailSent: boolean;
+}
+
+export type ListExpensesParams = {
+  category?: string;
+  frequency?: ListExpensesFrequency;
+  status?: ListExpensesStatus;
+};
+
+export type ListExpensesFrequency =
+  (typeof ListExpensesFrequency)[keyof typeof ListExpensesFrequency];
+
+export const ListExpensesFrequency = {
+  monthly: "monthly",
+  annually: "annually",
+  one_time: "one_time",
+} as const;
+
+export type ListExpensesStatus =
+  (typeof ListExpensesStatus)[keyof typeof ListExpensesStatus];
+
+export const ListExpensesStatus = {
+  active: "active",
+  cancelled: "cancelled",
+} as const;
