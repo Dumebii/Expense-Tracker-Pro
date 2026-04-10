@@ -7,9 +7,11 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { useUser, CURRENCIES } from "@/context/user-context";
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount);
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$", EUR: "€", GBP: "£", NGN: "₦", CAD: "C$",
+  AUD: "A$", JPY: "¥", CHF: "CHF", INR: "₹", ZAR: "R",
 };
 
 type TimeFrame = "month" | "quarter" | "half" | "year" | "all";
@@ -32,6 +34,19 @@ function getDateRange(timeframe: TimeFrame): { from?: string; to?: string } {
 }
 
 export default function Dashboard() {
+  const { user, updateProfile } = useUser();
+  const displayCurrency = user?.displayCurrency || "USD";
+  const symbol = CURRENCY_SYMBOLS[displayCurrency] || displayCurrency;
+
+  const formatCurrency = (amount: number) => {
+    return `${symbol}${Math.abs(amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const formatItemCurrency = (amount: number, currency = "USD") => {
+    const s = CURRENCY_SYMBOLS[currency] || currency;
+    return `${s}${Number(amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
   const [timeframe, setTimeframe] = useState<TimeFrame>("all");
   const dateRange = getDateRange(timeframe);
 
@@ -44,23 +59,35 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
           <p className="text-muted-foreground text-sm mt-1">Your financial command center</p>
         </div>
-        <Select value={timeframe} onValueChange={(v) => setTimeframe(v as TimeFrame)}>
-          <SelectTrigger className="w-44">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="month">This Month</SelectItem>
-            <SelectItem value="quarter">Last 3 Months</SelectItem>
-            <SelectItem value="half">Last 6 Months</SelectItem>
-            <SelectItem value="year">This Year</SelectItem>
-            <SelectItem value="all">All Time</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Select value={displayCurrency} onValueChange={(v) => updateProfile({ displayCurrency: v })}>
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CURRENCIES.map((c) => (
+                <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={timeframe} onValueChange={(v) => setTimeframe(v as TimeFrame)}>
+            <SelectTrigger className="w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="month">This Month</SelectItem>
+              <SelectItem value="quarter">Last 3 Months</SelectItem>
+              <SelectItem value="half">Last 6 Months</SelectItem>
+              <SelectItem value="year">This Year</SelectItem>
+              <SelectItem value="all">All Time</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {overview?.isInRed && (
@@ -115,7 +142,7 @@ export default function Dashboard() {
                 <div>
                   <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Net P&L</div>
                   <div className={cn("text-2xl font-bold", (overview?.netPL || 0) >= 0 ? "text-emerald-500" : "text-destructive")}>
-                    {(overview?.netPL || 0) >= 0 ? "+" : ""}{formatCurrency(overview?.netPL || 0)}
+                    {(overview?.netPL || 0) >= 0 ? "+" : "-"}{formatCurrency(overview?.netPL || 0)}
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">{formatCurrency(overview?.monthlyNetPL || 0)}/mo</div>
                 </div>
@@ -132,7 +159,7 @@ export default function Dashboard() {
                 <div>
                   <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Annualized Net</div>
                   <div className={cn("text-2xl font-bold", (overview?.annualizedNetPL || 0) >= 0 ? "text-emerald-500" : "text-destructive")}>
-                    {(overview?.annualizedNetPL || 0) >= 0 ? "+" : ""}{formatCurrency(overview?.annualizedNetPL || 0)}
+                    {(overview?.annualizedNetPL || 0) >= 0 ? "+" : "-"}{formatCurrency(overview?.annualizedNetPL || 0)}
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">run rate</div>
                 </div>
@@ -168,7 +195,7 @@ export default function Dashboard() {
                     <div className="text-xs text-muted-foreground">{entry.category} · {entry.frequency.replace("_", " ")}</div>
                   </div>
                   <div className="text-sm font-bold text-emerald-500">
-                    +${Number(entry.amount).toFixed(2)}
+                    +{formatItemCurrency(entry.amount, entry.currency)}
                   </div>
                 </div>
               ))
@@ -198,7 +225,7 @@ export default function Dashboard() {
                     <div className="text-xs text-muted-foreground">{expense.category} · {expense.frequency.replace("_", " ")}</div>
                   </div>
                   <div className="text-sm font-bold text-destructive">
-                    -${Number(expense.amount).toFixed(2)}
+                    -{formatItemCurrency(expense.amount, expense.currency)}
                   </div>
                 </div>
               ))

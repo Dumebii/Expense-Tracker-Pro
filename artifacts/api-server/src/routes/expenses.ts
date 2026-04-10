@@ -262,7 +262,7 @@ router.post("/expenses/:id/receipt", async (req, res): Promise<void> => {
   }
 
   const receiptNumber = `RCP-${Date.now()}-${String(expense.id).padStart(4, "0")}`;
-  const emailTo = "okolodumebi@gmail.com";
+  const emailTo = (req.query.emailTo as string | undefined) || "noreply@ledger.app";
 
   const [receipt] = await db
     .insert(receiptsTable)

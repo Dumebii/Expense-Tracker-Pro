@@ -14,10 +14,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { CURRENCIES } from "@/context/user-context";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
   amount: z.coerce.number().min(0.01, "Amount must be greater than 0"),
+  currency: z.string().default("USD"),
   category: z.string().min(1, "Category is required"),
   frequency: z.enum(["monthly", "annually", "one_time"]),
   status: z.enum(["active", "cancelled"]).optional(),
@@ -35,6 +37,7 @@ interface ExpenseFormProps {
     id: number;
     name: string;
     amount: number;
+    currency?: string;
     category: string;
     frequency: string;
     status: string;
@@ -53,6 +56,7 @@ export function ExpenseForm({ open, onOpenChange, expense }: ExpenseFormProps) {
     defaultValues: {
       name: expense?.name || "",
       amount: expense?.amount || 0,
+      currency: expense?.currency || "USD",
       category: expense?.category || "",
       frequency: (expense?.frequency as any) || "one_time",
       status: (expense?.status as any) || "active",
@@ -73,29 +77,25 @@ export function ExpenseForm({ open, onOpenChange, expense }: ExpenseFormProps) {
 
     if (isEditing && expense) {
       updateExpense.mutate(
-        { 
-          id: expense.id, 
+        {
+          id: expense.id,
           data: {
             ...payload,
             frequency: payload.frequency as UpdateExpenseBodyFrequency,
             status: payload.status as UpdateExpenseBodyStatus
           }
         },
-        {
-          onSuccess: () => onOpenChange(false),
-        }
+        { onSuccess: () => onOpenChange(false) }
       );
     } else {
       createExpense.mutate(
-        { 
+        {
           data: {
             ...payload,
             frequency: payload.frequency as CreateExpenseBodyFrequency
           }
         },
-        {
-          onSuccess: () => onOpenChange(false),
-        }
+        { onSuccess: () => onOpenChange(false) }
       );
     }
   };
@@ -140,6 +140,31 @@ export function ExpenseForm({ open, onOpenChange, expense }: ExpenseFormProps) {
 
               <FormField
                 control={form.control}
+                name="currency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Currency</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Currency" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {CURRENCIES.map((c) => (
+                          <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
                 name="category"
                 render={({ field }) => (
                   <FormItem>
@@ -151,9 +176,7 @@ export function ExpenseForm({ open, onOpenChange, expense }: ExpenseFormProps) {
                   </FormItem>
                 )}
               />
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="frequency"
@@ -176,31 +199,31 @@ export function ExpenseForm({ open, onOpenChange, expense }: ExpenseFormProps) {
                   </FormItem>
                 )}
               />
-              
-              {isEditing && (
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
             </div>
+
+            {isEditing && (
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
@@ -219,11 +242,7 @@ export function ExpenseForm({ open, onOpenChange, expense }: ExpenseFormProps) {
                               !field.value && "text-muted-foreground"
                             )}
                           >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
+                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
@@ -262,11 +281,7 @@ export function ExpenseForm({ open, onOpenChange, expense }: ExpenseFormProps) {
                                 !field.value && "text-muted-foreground"
                               )}
                             >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
+                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
                           </FormControl>
@@ -294,7 +309,7 @@ export function ExpenseForm({ open, onOpenChange, expense }: ExpenseFormProps) {
                 <FormItem>
                   <FormLabel>Notes (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Add any additional details here..."
                       className="resize-none"
                       {...field}

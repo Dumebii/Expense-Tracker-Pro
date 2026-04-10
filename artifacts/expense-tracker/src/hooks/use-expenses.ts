@@ -1,10 +1,9 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 import {
   useCreateExpense as useGeneratedCreateExpense,
   useUpdateExpense as useGeneratedUpdateExpense,
   useDeleteExpense as useGeneratedDeleteExpense,
   useCancelExpense as useGeneratedCancelExpense,
-  useGenerateReceipt as useGeneratedGenerateReceipt,
   getListExpensesQueryKey,
   getGetExpenseSummaryQueryKey,
   getGetExpenseQueryKey,
@@ -54,11 +53,15 @@ export function useExpensesMutations() {
     }
   });
 
-  const generateReceipt = useGeneratedGenerateReceipt({
-    mutation: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListReceiptsQueryKey() });
-      }
+  const generateReceipt = useMutation({
+    mutationFn: async ({ id, emailTo }: { id: number; emailTo?: string }) => {
+      const url = `/api/expenses/${id}/receipt${emailTo ? `?emailTo=${encodeURIComponent(emailTo)}` : ""}`;
+      const res = await fetch(url, { method: "POST" });
+      if (!res.ok) throw new Error("Failed to generate receipt");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getListReceiptsQueryKey() });
     }
   });
 
