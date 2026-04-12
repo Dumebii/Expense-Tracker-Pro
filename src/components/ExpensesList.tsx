@@ -2,17 +2,16 @@
 
 import { Expense } from '@/hooks/useExpenses';
 import { useState } from 'react';
-import { format } from 'date-fns';
 
 interface ExpensesListProps {
   expenses: Expense[];
   onDelete: (id: string) => Promise<void>;
   onUpdate: (id: string, updates: Partial<Expense>) => Promise<void>;
+  onCancel?: (id: string) => Promise<void>;
 }
 
-export default function ExpensesList({ expenses, onDelete, onUpdate }: ExpensesListProps) {
+export default function ExpensesList({ expenses, onDelete, onUpdate, onCancel }: ExpensesListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<Partial<Expense>>({});
 
   const categoryColors: Record<string, string> = {
     Food: 'bg-orange-100 text-orange-800',
@@ -25,100 +24,97 @@ export default function ExpensesList({ expenses, onDelete, onUpdate }: ExpensesL
     Other: 'bg-gray-100 text-gray-800',
   };
 
-  const handleEdit = (expense: Expense) => {
-    setEditingId(expense.id);
-    setEditForm(expense);
+  const frequencyLabels = {
+    one_time: 'One Time',
+    monthly: 'Monthly',
+    annually: 'Annually',
   };
 
-  const handleSave = async () => {
-    if (editingId) {
-      await onUpdate(editingId, editForm);
-      setEditingId(null);
-    }
-  };
-
-  const handleCancel = () => {
-    setEditingId(null);
-    setEditForm({});
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
   };
 
   return (
     <div className="space-y-3">
-      {expenses.map((expense) => (
-        <div
-          key={expense.id}
-          className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-secondary/50 transition-colors"
-        >
-          {editingId === expense.id ? (
-            <div className="flex-1 space-y-2">
-              <input
-                type="text"
-                value={editForm.title || ''}
-                onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                className="w-full px-3 py-1 border border-border rounded bg-background text-foreground"
-              />
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  step="0.01"
-                  value={editForm.amount || ''}
-                  onChange={(e) => setEditForm({ ...editForm, amount: parseFloat(e.target.value) })}
-                  className="flex-1 px-3 py-1 border border-border rounded bg-background text-foreground"
-                />
-                <input
-                  type="date"
-                  value={editForm.date || ''}
-                  onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
-                  className="flex-1 px-3 py-1 border border-border rounded bg-background text-foreground"
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSave}
-                  className="flex-1 px-3 py-1 bg-primary text-primary-foreground rounded text-sm hover:bg-primary/90"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={handleCancel}
-                  className="flex-1 px-3 py-1 border border-border text-foreground rounded text-sm hover:bg-secondary"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
+      {expenses.length === 0 ? (
+        <p className="text-center text-gray-500 py-8">No expenses yet</p>
+      ) : (
+        expenses.map((expense) => (
+          <div
+            key={expense.id}
+            className={`p-4 border rounded-lg transition-all ${
+              expense.status === 'cancelled'
+                ? 'bg-gray-50 border-gray-200 opacity-60'
+                : 'bg-white border-gray-200 hover:shadow-md'
+            }`}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-3">
-                  <div>
-                    <p className="font-semibold text-foreground">{expense.title}</p>
-                    <p className="text-sm text-muted-foreground">{format(new Date(expense.date), 'MMM dd, yyyy')}</p>
+                <div className="flex items-start gap-3">
+                  <div className="flex-1">
+                    <p className={`font-semibold text-gray-900 ${expense.status === 'cancelled' ? 'line-through' : ''}`}>
+                      {expense.title}
+                    </p>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${categoryColors[expense.category] || categoryColors.Other}`}>
+                        {expense.category}
+                      </span>
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                        {frequencyLabels[expense.frequency as keyof typeof frequencyLabels] || expense.frequency}
+                      </span>
+                      {expense.status === 'cancelled' && (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                          Cancelled
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">{formatDate(expense.date)}</p>
+                    {expense.notes && <p className="text-xs text-gray-600 mt-1">Notes: {expense.notes}</p>}
                   </div>
                 </div>
               </div>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${categoryColors[expense.category] || categoryColors.Other}`}>
-                {expense.category}
-              </span>
-              <div className="flex items-center gap-4 ml-4">
-                <p className="font-bold text-foreground min-w-fit">₹{expense.amount.toFixed(2)}</p>
-                <button
-                  onClick={() => handleEdit(expense)}
-                  className="px-3 py-1 text-sm border border-border text-foreground rounded hover:bg-secondary transition-colors"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => onDelete(expense.id)}
-                  className="px-3 py-1 text-sm border border-destructive text-destructive rounded hover:bg-destructive/10 transition-colors"
-                >
-                  Delete
-                </button>
+
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="font-bold text-gray-900 text-lg">
+                    {expense.currency} {expense.amount.toFixed(2)}
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+                  {expense.status !== 'cancelled' && (
+                    <>
+                      <button
+                        onClick={() => onUpdate(expense.id, {})}
+                        className="px-3 py-1 text-xs border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors"
+                        title="Edit expense"
+                      >
+                        Edit
+                      </button>
+                      {onCancel && (
+                        <button
+                          onClick={() => onCancel(expense.id)}
+                          className="px-3 py-1 text-xs border border-yellow-300 text-yellow-700 rounded hover:bg-yellow-50 transition-colors"
+                          title="Cancel this expense"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </>
+                  )}
+                  <button
+                    onClick={() => onDelete(expense.id)}
+                    className="px-3 py-1 text-xs border border-red-300 text-red-700 rounded hover:bg-red-50 transition-colors"
+                    title="Delete expense"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-            </>
-          )}
-        </div>
-      ))}
+            </div>
+          </div>
+        ))
+      )}
     </div>
   );
 }

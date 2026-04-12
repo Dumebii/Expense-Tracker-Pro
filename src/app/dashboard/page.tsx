@@ -11,7 +11,7 @@ import ExpensesList from '@/components/ExpensesList';
 import ExpenseStats from '@/components/ExpenseStats';
 
 export default function DashboardPage() {
-  const { expenses, loading, addExpense, updateExpense, deleteExpense } = useExpenses();
+  const { expenses, loading, addExpense, updateExpense, deleteExpense, cancelExpense, generateReceipt } = useExpenses();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
 
@@ -30,8 +30,9 @@ export default function DashboardPage() {
     loadUser();
   }, []);
 
-  const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
-  const thisMonthExpenses = expenses
+  const activeExpenses = expenses.filter((exp) => exp.status === 'active');
+  const totalExpenses = activeExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const thisMonthExpenses = activeExpenses
     .filter((exp) => {
       const expDate = new Date(exp.date);
       const now = new Date();
@@ -96,7 +97,12 @@ export default function DashboardPage() {
               ) : expenses.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">No expenses yet. Add your first expense to get started!</p>
               ) : (
-                <ExpensesList expenses={expenses} onDelete={deleteExpense} onUpdate={updateExpense} />
+                <ExpensesList 
+                  expenses={expenses} 
+                  onDelete={deleteExpense} 
+                  onUpdate={updateExpense}
+                  onCancel={cancelExpense}
+                />
               )}
             </div>
           </div>

@@ -22,12 +22,21 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Get expenses for user
-    const { data: expenses, error } = await supabase
+    // Get filter params
+    const category = req.nextUrl.searchParams.get('category');
+    const frequency = req.nextUrl.searchParams.get('frequency');
+    const status = req.nextUrl.searchParams.get('status');
+
+    let query = supabase
       .from('expenses')
       .select('*')
-      .eq('user_id', userData.id)
-      .order('date', { ascending: false });
+      .eq('user_id', userData.id);
+
+    if (category) query = query.eq('category', category);
+    if (frequency) query = query.eq('frequency', frequency);
+    if (status) query = query.eq('status', status);
+
+    const { data: expenses, error } = await query.order('date', { ascending: false });
 
     if (error) {
       throw error;
@@ -51,7 +60,19 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, amount, category, date, description } = body;
+    const { 
+      title, 
+      amount, 
+      category, 
+      date, 
+      description,
+      frequency = 'one_time',
+      currency = 'USD',
+      status = 'active',
+      renewalDate,
+      purchaseDate,
+      notes
+    } = body;
 
     if (!title || !amount || !category || !date) {
       return NextResponse.json(
@@ -84,6 +105,12 @@ export async function POST(req: NextRequest) {
           category,
           date,
           description: description || null,
+          frequency,
+          currency,
+          status,
+          renewal_date: renewalDate || null,
+          purchase_date: purchaseDate || null,
+          notes: notes || null,
         },
       ])
       .select()
