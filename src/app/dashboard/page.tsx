@@ -1,106 +1,76 @@
-'use client';
-
-import { useUser, UserButton } from '@clerk/nextjs';
+import { auth, currentUser } from '@clerk/nextjs/server';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { useExpenses } from '@/hooks/useExpenses';
-import { useState } from 'react';
-import AddExpenseModal from '@/components/AddExpenseModal';
-import ExpensesList from '@/components/ExpensesList';
-import ExpenseStats from '@/components/ExpenseStats';
+import { UserButton } from '@clerk/nextjs';
 
-export default function Dashboard() {
-  const { user } = useUser();
-  const { expenses, loading, addExpense, updateExpense, deleteExpense, fetchExpenses } = useExpenses();
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+export default async function DashboardPage() {
+  const { userId } = await auth();
+  const user = await currentUser();
 
-  const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
-  const categories = [...new Set(expenses.map(exp => exp.category))];
-  const categoryTotals = categories.map(cat => ({
-    category: cat,
-    total: expenses.filter(exp => exp.category === cat).reduce((sum, exp) => sum + exp.amount, 0),
-  }));
+  if (!userId) {
+    redirect('/sign-in');
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-background sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+    <main className="min-h-screen bg-gray-50">
+      {/* Navbar */}
+      <nav className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">₹</span>
+            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-lg">
+              ₹
             </div>
-            <h1 className="text-xl font-bold text-foreground hidden sm:block">Expense Tracker Pro</h1>
+            <span className="text-xl font-semibold text-gray-900">Expense Tracker Pro</span>
           </Link>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">Welcome, {user?.firstName || 'User'}!</span>
+            <span className="text-sm text-gray-600">Welcome, {user?.firstName || 'User'}</span>
             <UserButton afterSignOutUrl="/" />
           </div>
         </div>
-      </header>
+      </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Overview */}
+      {/* Dashboard Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-background border border-border rounded-lg p-6">
-            <p className="text-muted-foreground text-sm mb-2">Total Expenses</p>
-            <p className="text-3xl font-bold text-foreground">₹{totalExpenses.toFixed(2)}</p>
-          </div>
-          <div className="bg-background border border-border rounded-lg p-6">
-            <p className="text-muted-foreground text-sm mb-2">Transactions</p>
-            <p className="text-3xl font-bold text-foreground">{expenses.length}</p>
-          </div>
-          <div className="bg-background border border-border rounded-lg p-6">
-            <p className="text-muted-foreground text-sm mb-2">Categories</p>
-            <p className="text-3xl font-bold text-foreground">{categories.length}</p>
-          </div>
+          {[
+            { label: 'Total Expenses', value: '$0', color: 'bg-emerald-100 text-emerald-700' },
+            { label: 'This Month', value: '$0', color: 'bg-blue-100 text-blue-700' },
+            { label: 'Budget Left', value: '$0', color: 'bg-purple-100 text-purple-700' },
+          ].map((stat, idx) => (
+            <div key={idx} className={`p-6 rounded-lg ${stat.color}`}>
+              <p className="text-sm font-medium mb-2">{stat.label}</p>
+              <p className="text-3xl font-bold">{stat.value}</p>
+            </div>
+          ))}
         </div>
 
-        {/* Add Expense Button */}
-        <div className="mb-8">
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold"
-          >
-            + Add Expense
+        <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Welcome to your Dashboard</h2>
+          <p className="text-gray-600 mb-8">
+            Start tracking your expenses by adding your first expense. Your spending analysis will appear here.
+          </p>
+          <button className="px-8 py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors">
+            Add Your First Expense
           </button>
         </div>
 
-        {/* Main Content */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Expenses List */}
-          <div className="lg:col-span-2">
-            <div className="bg-background border border-border rounded-lg p-6">
-              <h2 className="text-xl font-bold text-foreground mb-6">Recent Expenses</h2>
-              {loading ? (
-                <p className="text-muted-foreground">Loading...</p>
-              ) : expenses.length === 0 ? (
-                <p className="text-muted-foreground">No expenses yet. Add your first expense to get started!</p>
-              ) : (
-                <ExpensesList
-                  expenses={expenses}
-                  onDelete={deleteExpense}
-                  onUpdate={updateExpense}
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Analytics Sidebar */}
-          <div className="lg:col-span-1">
-            <ExpenseStats expenses={expenses} />
+        {/* Coming Soon Features */}
+        <div className="mt-12">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">Features Coming Soon</h3>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { title: 'Expense Tracker', desc: 'Add and categorize your expenses' },
+              { title: 'Analytics', desc: 'View spending patterns and insights' },
+              { title: 'Budget Management', desc: 'Set and track your budgets' },
+            ].map((feature, idx) => (
+              <div key={idx} className="bg-white rounded-lg border border-gray-200 p-6">
+                <h4 className="font-semibold text-gray-900 mb-2">{feature.title}</h4>
+                <p className="text-gray-600 text-sm">{feature.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
-      </main>
-
-      {/* Add Expense Modal */}
-      <AddExpenseModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAdd={async (expense) => {
-          await addExpense(expense);
-          setIsAddModalOpen(false);
-        }}
-      />
-    </div>
+      </div>
+    </main>
   );
 }
