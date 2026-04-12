@@ -1,6 +1,5 @@
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
 
 export default async function Home() {
   const { userId } = await auth();
@@ -12,12 +11,12 @@ export default async function Home() {
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <h1 className="text-xl font-bold">Expense Tracker Pro</h1>
           <div className="flex gap-4">
-            <Link href="/sign-in" className="px-4 py-2 hover:text-gray-600">
+            <button className="px-4 py-2 hover:text-gray-600">
               Sign In
-            </Link>
-            <Link href="/sign-up" className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700">
+            </button>
+            <button className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700">
               Get Started
-            </Link>
+            </button>
           </div>
         </div>
       </nav>
@@ -29,12 +28,12 @@ export default async function Home() {
             Track every expense, analyze spending patterns, and reach your financial goals with Expense Tracker Pro.
           </p>
           <div className="flex gap-4 justify-center">
-            <Link href="/sign-up" className="px-8 py-3 bg-emerald-600 text-white rounded hover:bg-emerald-700">
+            <button className="px-8 py-3 bg-emerald-600 text-white rounded hover:bg-emerald-700">
               Start Tracking Free
-            </Link>
-            <Link href="#features" className="px-8 py-3 border border-gray-300 rounded hover:bg-gray-50">
+            </button>
+            <button className="px-8 py-3 border border-gray-300 rounded hover:bg-gray-50">
               Learn More
-            </Link>
+            </button>
           </div>
         </div>
       </section>
@@ -58,7 +57,7 @@ export default async function Home() {
       </section>
 
       <footer className="border-t bg-gray-50 py-8 text-center text-gray-600">
-        <p>&copy; 2024 Expense Tracker Pro. All rights reserved.</p>
+        <p>&copy; 2026 Expense Tracker Pro. All rights reserved.</p>
       </footer>
     </main>
   );
