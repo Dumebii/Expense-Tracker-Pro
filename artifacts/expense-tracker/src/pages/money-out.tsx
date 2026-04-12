@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/context/user-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,6 +54,7 @@ export default function MoneyOut() {
 
   const { cancelExpense, deleteExpense, generateReceipt } = useExpensesMutations();
   const { toast } = useToast();
+  const { user } = useUser();
 
   const [expenseToDelete, setExpenseToDelete] = useState<number | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -60,12 +62,12 @@ export default function MoneyOut() {
 
   const handleGenerateReceipt = (id: number) => {
     generateReceipt.mutate(
-      { id },
+      { id, emailTo: user?.receiptEmail || user?.email },
       {
         onSuccess: (res) => {
           toast({
             title: "Receipt Generated",
-            description: `Receipt emailed to ${res.receipt.emailedTo}`,
+            description: `Receipt filed for ${res.receipt.emailedTo}`,
           });
         },
         onError: () => {
