@@ -35,12 +35,11 @@
     --muted-foreground: 215 13% 34%;
     --border: 217 32% 17%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
