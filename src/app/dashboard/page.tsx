@@ -1,106 +1,110 @@
 'use client';
 
-import { useUser, UserButton } from '@clerk/nextjs';
-import Link from 'next/link';
-import { useExpenses } from '@/hooks/useExpenses';
-import { useState } from 'react';
-import AddExpenseModal from '@/components/AddExpenseModal';
-import ExpensesList from '@/components/ExpensesList';
-import ExpenseStats from '@/components/ExpenseStats';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@clerk/nextjs';
+import { TrendingUp, TrendingDown, DollarSign, Activity } from 'lucide-react';
+import StatsCard from '@/components/dashboard/StatsCard';
+import RecentTransactions from '@/components/dashboard/RecentTransactions';
 
-export default function Dashboard() {
-  const { user } = useUser();
-  const { expenses, loading, addExpense, updateExpense, deleteExpense, fetchExpenses } = useExpenses();
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+interface TransactionData {
+  totalIncome: number;
+  totalExpenses: number;
+  netP_L: number;
+  annualizedNet: number;
+  recentIncome: any[];
+  recentExpenses: any[];
+}
 
-  const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
-  const categories = [...new Set(expenses.map(exp => exp.category))];
-  const categoryTotals = categories.map(cat => ({
-    category: cat,
-    total: expenses.filter(exp => exp.category === cat).reduce((sum, exp) => sum + exp.amount, 0),
-  }));
+export default function OverviewPage() {
+  const { userId } = useAuth();
+  const [data, setData] = useState<TransactionData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [currency, setCurrency] = useState('USD');
+
+  useEffect(() => {
+    if (!userId) return;
+
+    async function fetchData() {
+      try {
+        const response = await fetch('/api/dashboard/summary', {
+          headers: { 'user-id': userId },
+        });
+        if (!response.ok) throw new Error('Failed to fetch');
+        const result = await response.json();
+        setData(result);
+        setCurrency(result.currency || 'USD');
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [userId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-slate-600">Loading...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-background sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">₹</span>
-            </div>
-            <h1 className="text-xl font-bold text-foreground hidden sm:block">Expense Tracker Pro</h1>
-          </Link>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">Welcome, {user?.firstName || 'User'}!</span>
-            <UserButton afterSignOutUrl="/" />
-          </div>
-        </div>
-      </header>
+    <div className="p-8 max-w-7xl">
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-slate-900">Overview</h1>
+        <p className="text-slate-600 mt-2">Your financial command center</p>
+      </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Overview */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-background border border-border rounded-lg p-6">
-            <p className="text-muted-foreground text-sm mb-2">Total Expenses</p>
-            <p className="text-3xl font-bold text-foreground">₹{totalExpenses.toFixed(2)}</p>
-          </div>
-          <div className="bg-background border border-border rounded-lg p-6">
-            <p className="text-muted-foreground text-sm mb-2">Transactions</p>
-            <p className="text-3xl font-bold text-foreground">{expenses.length}</p>
-          </div>
-          <div className="bg-background border border-border rounded-lg p-6">
-            <p className="text-muted-foreground text-sm mb-2">Categories</p>
-            <p className="text-3xl font-bold text-foreground">{categories.length}</p>
-          </div>
-        </div>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <StatsCard
+          title="Total Income"
+          amount={data?.totalIncome || 0}
+          currency={currency}
+          icon={<TrendingUp className="text-emerald-500" size={20} />}
+          subtext={`${currency} ${((data?.totalIncome || 0) / 12).toFixed(2)}/mo`}
+        />
+        <StatsCard
+          title="Total Expenses"
+          amount={data?.totalExpenses || 0}
+          currency={currency}
+          icon={<TrendingDown className="text-red-500" size={20} />}
+          subtext={`${currency} ${((data?.totalExpenses || 0) / 12).toFixed(2)}/mo`}
+        />
+        <StatsCard
+          title="Net P&L"
+          amount={data?.netP_L || 0}
+          currency={currency}
+          icon={<DollarSign className="text-emerald-500" size={20} />}
+          subtext={`${currency} ${((data?.netP_L || 0) / 12).toFixed(2)}/mo`}
+        />
+        <StatsCard
+          title="Annualized Net"
+          amount={data?.annualizedNet || 0}
+          currency={currency}
+          icon={<Activity className="text-blue-500" size={20} />}
+          subtext="run rate"
+        />
+      </div>
 
-        {/* Add Expense Button */}
-        <div className="mb-8">
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold"
-          >
-            + Add Expense
-          </button>
-        </div>
-
-        {/* Main Content */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Expenses List */}
-          <div className="lg:col-span-2">
-            <div className="bg-background border border-border rounded-lg p-6">
-              <h2 className="text-xl font-bold text-foreground mb-6">Recent Expenses</h2>
-              {loading ? (
-                <p className="text-muted-foreground">Loading...</p>
-              ) : expenses.length === 0 ? (
-                <p className="text-muted-foreground">No expenses yet. Add your first expense to get started!</p>
-              ) : (
-                <ExpensesList
-                  expenses={expenses}
-                  onDelete={deleteExpense}
-                  onUpdate={updateExpense}
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Analytics Sidebar */}
-          <div className="lg:col-span-1">
-            <ExpenseStats expenses={expenses} />
-          </div>
-        </div>
-      </main>
-
-      {/* Add Expense Modal */}
-      <AddExpenseModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAdd={async (expense) => {
-          await addExpense(expense);
-          setIsAddModalOpen(false);
-        }}
-      />
+      {/* Recent Transactions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RecentTransactions
+          title="Recent Income"
+          transactions={data?.recentIncome || []}
+          type="income"
+          currency={currency}
+        />
+        <RecentTransactions
+          title="Recent Expenses"
+          transactions={data?.recentExpenses || []}
+          type="expense"
+          currency={currency}
+        />
+      </div>
     </div>
   );
 }

@@ -1,30 +1,31 @@
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { LayoutIcon } from 'lucide-react';
 
 export default async function Home() {
   const { userId } = await auth();
-
+  
   if (userId) {
     redirect('/dashboard');
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background">
-      {/* Navigation */}
-      <nav className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+    <main className="min-h-screen bg-white">
+      {/* Navbar */}
+      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-sm border-b border-slate-200 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">₹</span>
+            <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white">
+              <LayoutIcon size={20} />
             </div>
-            <h1 className="text-xl font-bold text-foreground">Expense Tracker Pro</h1>
+            <span className="text-xl font-semibold text-slate-900">Ledger</span>
           </div>
-          <div className="flex gap-4">
-            <Link href="/sign-in" className="px-4 py-2 text-foreground hover:text-primary transition-colors">
+          <div className="flex gap-3">
+            <Link href="/sign-in" className="px-4 py-2 text-slate-700 hover:text-slate-900 font-medium transition-colors">
               Sign In
             </Link>
-            <Link href="/sign-up" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+            <Link href="/sign-up" className="px-6 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 font-medium transition-colors">
               Get Started
             </Link>
           </div>
@@ -32,89 +33,108 @@ export default async function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-32">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6">
-            Take Control of Your <span className="text-primary">Finances</span>
-          </h2>
-          <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Track every expense, analyze spending patterns, and reach your financial goals with our intuitive expense tracking platform.
+      <section className="pt-32 pb-20 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-6xl font-bold text-slate-900 mb-6 leading-tight">
+            Your Financial Command Center
+          </h1>
+          <p className="text-2xl text-slate-600 mb-12 max-w-2xl mx-auto">
+            Track income and expenses, monitor profit & loss, and get AI-powered financial advice all in one place.
           </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <Link href="/sign-up" className="px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold">
-              Start Tracking Free
-            </Link>
-            <Link href="#features" className="px-8 py-3 border border-border text-foreground rounded-lg hover:bg-secondary transition-colors font-semibold">
-              Learn More
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 bg-secondary/50">
-        <h3 className="text-3xl font-bold text-center text-foreground mb-16">Why Choose Expense Tracker Pro?</h3>
-        <div className="grid md:grid-cols-3 gap-8">
-          {[
-            {
-              title: 'Easy Tracking',
-              description: 'Quickly add and categorize expenses in seconds',
-              icon: '✓',
-            },
-            {
-              title: 'Smart Analytics',
-              description: 'Visualize spending patterns with detailed charts',
-              icon: '📊',
-            },
-            {
-              title: 'Budget Management',
-              description: 'Set budgets and stay on top of spending limits',
-              icon: '💰',
-            },
-            {
-              title: 'Secure & Private',
-              description: 'Your data is encrypted and belongs to you',
-              icon: '🔒',
-            },
-            {
-              title: 'Mobile Friendly',
-              description: 'Track expenses on the go from any device',
-              icon: '📱',
-            },
-            {
-              title: 'Export Reports',
-              description: 'Generate and download detailed expense reports',
-              icon: '📄',
-            },
-          ].map((feature, index) => (
-            <div key={index} className="p-6 bg-background border border-border rounded-lg hover:border-primary/50 transition-colors">
-              <div className="text-3xl mb-4">{feature.icon}</div>
-              <h4 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h4>
-              <p className="text-muted-foreground">{feature.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="bg-primary text-primary-foreground rounded-lg p-12 text-center">
-          <h3 className="text-3xl font-bold mb-4">Ready to manage your expenses?</h3>
-          <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
-            Join thousands of users who are taking control of their finances today.
-          </p>
-          <Link href="/sign-up" className="inline-block px-8 py-3 bg-primary-foreground text-primary rounded-lg hover:bg-secondary transition-colors font-semibold">
-            Get Started Now
+          <Link href="/sign-up" className="inline-block px-8 py-4 bg-slate-900 text-white text-lg font-semibold rounded-lg hover:bg-slate-800 transition-colors">
+            Start Free
           </Link>
         </div>
       </section>
 
+      {/* Features Section */}
+      <section className="bg-slate-50 py-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-4xl font-bold text-slate-900 text-center mb-16">
+            Everything You Need
+          </h2>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: '💰',
+                title: 'Income Tracking',
+                desc: 'Track all your income sources with frequency support (one-time, monthly, annual).',
+              },
+              {
+                icon: '📊',
+                title: 'Expense Management',
+                desc: 'Categorize and monitor expenses with detailed analytics and trends.',
+              },
+              {
+                icon: '📈',
+                title: 'Profit & Loss',
+                desc: 'Visual breakdown of your financial health with category-based insights.',
+              },
+              {
+                icon: '🧾',
+                title: 'Receipts',
+                desc: 'Generate and organize receipts for all your business expenses.',
+              },
+              {
+                icon: '📋',
+                title: 'Statements',
+                desc: 'Generate detailed account statements for any date range.',
+              },
+              {
+                icon: '🤖',
+                title: 'AI Advisor',
+                desc: 'Get personalized financial advice powered by AI.',
+              },
+            ].map((feature, idx) => (
+              <div
+                key={idx}
+                className="p-6 bg-white rounded-lg border border-slate-200 hover:border-slate-300 transition-all"
+              >
+                <div className="text-4xl mb-4">{feature.icon}</div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-slate-600">{feature.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 px-4">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-4xl font-bold text-slate-900 mb-6">
+            Ready to take control?
+          </h2>
+          <p className="text-xl text-slate-600 mb-10">
+            Get started with Ledger today and get complete visibility into your finances.
+          </p>
+          <div className="flex gap-4 justify-center flex-wrap">
+            <Link href="/sign-up" className="inline-block px-8 py-4 bg-slate-900 text-white text-lg font-semibold rounded-lg hover:bg-slate-800 transition-colors">
+              Start Free
+            </Link>
+            <Link href="/sign-in" className="inline-block px-8 py-4 border-2 border-slate-300 text-slate-900 text-lg font-semibold rounded-lg hover:border-slate-900 transition-colors">
+              Sign In
+            </Link>
+          </div>
+          <p className="text-slate-600 mt-6">
+            No credit card required. Start tracking immediately.
+          </p>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="border-t border-border bg-secondary/50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-muted-foreground">
-          <p>&copy; 2024 Expense Tracker Pro. All rights reserved.</p>
+      <footer className="bg-slate-900 text-slate-400 py-12 px-4">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="w-6 h-6 rounded bg-emerald-500"></div>
+            <span className="text-white font-semibold">Ledger</span>
+          </div>
+          <p className="text-sm">&copy; 2026 Ledger. Your Financial Command Center.</p>
         </div>
       </footer>
-    </div>
+    </main>
   );
 }

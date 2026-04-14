@@ -48,7 +48,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
+export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -60,7 +60,6 @@ export async function PUT(
 
     const { id } = await params;
     const body = await req.json();
-    const { title, amount, category, date, description } = body;
 
     const supabase = createSupabaseClient();
 
@@ -75,17 +74,25 @@ export async function PUT(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Build update object with only provided fields
+    const updateData: any = {};
+    if (body.title !== undefined) updateData.title = body.title;
+    if (body.amount !== undefined) updateData.amount = parseFloat(body.amount);
+    if (body.category !== undefined) updateData.category = body.category;
+    if (body.date !== undefined) updateData.date = body.date;
+    if (body.description !== undefined) updateData.description = body.description;
+    if (body.frequency !== undefined) updateData.frequency = body.frequency;
+    if (body.currency !== undefined) updateData.currency = body.currency;
+    if (body.status !== undefined) updateData.status = body.status;
+    if (body.renewal_date !== undefined) updateData.renewal_date = body.renewal_date;
+    if (body.purchase_date !== undefined) updateData.purchase_date = body.purchase_date;
+    if (body.notes !== undefined) updateData.notes = body.notes;
+    updateData.updated_at = new Date().toISOString();
+
     // Update expense
     const { data: expense, error } = await supabase
       .from('expenses')
-      .update({
-        title: title || undefined,
-        amount: amount ? parseFloat(amount) : undefined,
-        category: category || undefined,
-        date: date || undefined,
-        description: description !== undefined ? description : undefined,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', id)
       .eq('user_id', userData.id)
       .select()
@@ -93,6 +100,10 @@ export async function PUT(
 
     if (error) {
       throw error;
+    }
+
+    if (!expense) {
+      return NextResponse.json({ error: 'Expense not found' }, { status: 404 });
     }
 
     return NextResponse.json(expense);

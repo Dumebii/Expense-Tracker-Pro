@@ -58,3 +58,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# clerk configuration (can include secrets)
+/.clerk/
