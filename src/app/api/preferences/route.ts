@@ -13,24 +13,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: prefs } = await supabase
+    const { data } = await supabase
       .from('user_preferences')
-      .select('currency')
+      .select('*')
       .eq('user_id', userId)
       .single();
 
-    const currency = prefs?.currency || 'USD';
-
-    const { data: expenses } = await supabase
-      .from('expenses')
-      .select('*')
-      .eq('user_id', userId)
-      .order('date', { ascending: false });
-
-    return NextResponse.json({
-      expenses: expenses || [],
-      currency,
-    });
+    return NextResponse.json(data || {});
   } catch (error) {
     console.error('Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -46,25 +35,20 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    const { data: expense, error } = await supabase
-      .from('expenses')
-      .insert({
+    const { data, error } = await supabase
+      .from('user_preferences')
+      .upsert({
         user_id: userId,
-        title: body.title,
-        amount: body.amount,
-        category: body.category,
-        date: body.date,
-        frequency: body.frequency,
-        description: body.description,
-        currency: 'USD',
-        status: 'active',
+        receipt_email: body.receiptEmail,
+        currency: body.currency,
+        updated_at: new Date(),
       })
       .select()
       .single();
 
     if (error) throw error;
 
-    return NextResponse.json(expense, { status: 201 });
+    return NextResponse.json(data);
   } catch (error) {
     console.error('Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

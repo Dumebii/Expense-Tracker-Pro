@@ -21,14 +21,14 @@ export async function GET(request: NextRequest) {
 
     const currency = prefs?.currency || 'USD';
 
-    const { data: expenses } = await supabase
-      .from('expenses')
+    const { data: income } = await supabase
+      .from('income')
       .select('*')
       .eq('user_id', userId)
       .order('date', { ascending: false });
 
     return NextResponse.json({
-      expenses: expenses || [],
+      income: income || [],
       currency,
     });
   } catch (error) {
@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    const { data: expense, error } = await supabase
-      .from('expenses')
+    const { data: incomeItem, error } = await supabase
+      .from('income')
       .insert({
         user_id: userId,
         title: body.title,
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error;
 
-    return NextResponse.json(expense, { status: 201 });
+    return NextResponse.json(incomeItem, { status: 201 });
   } catch (error) {
     console.error('Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

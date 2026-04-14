@@ -1,128 +1,110 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { auth, currentUser } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { UserButton } from '@clerk/nextjs';
-import { useExpenses } from '@/hooks/useExpenses';
-import AddExpenseModal from '@/components/AddExpenseModal';
-import ExpensesList from '@/components/ExpensesList';
-import ExpenseStats from '@/components/ExpenseStats';
+import { useAuth } from '@clerk/nextjs';
+import { TrendingUp, TrendingDown, DollarSign, Activity } from 'lucide-react';
+import StatsCard from '@/components/dashboard/StatsCard';
+import RecentTransactions from '@/components/dashboard/RecentTransactions';
 
-export default function DashboardPage() {
-  const { expenses, loading, addExpense, updateExpense, deleteExpense, cancelExpense, generateReceipt } = useExpenses();
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
+interface TransactionData {
+  totalIncome: number;
+  totalExpenses: number;
+  netP_L: number;
+  annualizedNet: number;
+  recentIncome: any[];
+  recentExpenses: any[];
+}
+
+export default function OverviewPage() {
+  const { userId } = useAuth();
+  const [data, setData] = useState<TransactionData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [currency, setCurrency] = useState('USD');
 
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const response = await fetch('/api/user');
-        if (response.ok) {
-          const userData = await response.json();
-          setUser(userData);
-        }
-      } catch (error) {
-        console.error('Failed to load user:', error);
-      }
-    };
-    loadUser();
-  }, []);
+    if (!userId) return;
 
-  const activeExpenses = expenses.filter((exp) => exp.status === 'active');
-  const totalExpenses = activeExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-  const thisMonthExpenses = activeExpenses
-    .filter((exp) => {
-      const expDate = new Date(exp.date);
-      const now = new Date();
-      return expDate.getMonth() === now.getMonth() && expDate.getFullYear() === now.getFullYear();
-    })
-    .reduce((sum, exp) => sum + exp.amount, 0);
+    async function fetchData() {
+      try {
+        const response = await fetch('/api/dashboard/summary', {
+          headers: { 'user-id': userId },
+        });
+        if (!response.ok) throw new Error('Failed to fetch');
+        const result = await response.json();
+        setData(result);
+        setCurrency(result.currency || 'USD');
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [userId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-slate-600">Loading...</p>
+      </div>
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-lg">
-              ₹
-            </div>
-            <span className="text-xl font-semibold text-gray-900">Expense Tracker Pro</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Welcome, {user?.firstName || 'User'}</span>
-            <UserButton afterSignOutUrl="/" />
-          </div>
-        </div>
-      </nav>
-
-      {/* Dashboard Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Stats Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-emerald-100 text-emerald-700 p-6 rounded-lg">
-            <p className="text-sm font-medium mb-2">Total Expenses</p>
-            <p className="text-3xl font-bold">₹{totalExpenses.toFixed(2)}</p>
-          </div>
-          <div className="bg-blue-100 text-blue-700 p-6 rounded-lg">
-            <p className="text-sm font-medium mb-2">This Month</p>
-            <p className="text-3xl font-bold">₹{thisMonthExpenses.toFixed(2)}</p>
-          </div>
-          <div className="bg-purple-100 text-purple-700 p-6 rounded-lg">
-            <p className="text-sm font-medium mb-2">Total Transactions</p>
-            <p className="text-3xl font-bold">{expenses.length}</p>
-          </div>
-        </div>
-
-        {/* Add Button */}
-        <div className="mb-8">
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="px-8 py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors"
-          >
-            + Add Expense
-          </button>
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Expenses List */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Recent Expenses</h2>
-              {loading ? (
-                <p className="text-gray-500 text-center py-8">Loading expenses...</p>
-              ) : expenses.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No expenses yet. Add your first expense to get started!</p>
-              ) : (
-                <ExpensesList 
-                  expenses={expenses} 
-                  onDelete={deleteExpense} 
-                  onUpdate={updateExpense}
-                  onCancel={cancelExpense}
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Analytics Sidebar */}
-          <div className="lg:col-span-1">
-            <ExpenseStats expenses={expenses} />
-          </div>
-        </div>
+    <div className="p-8 max-w-7xl">
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-slate-900">Overview</h1>
+        <p className="text-slate-600 mt-2">Your financial command center</p>
       </div>
 
-      {/* Add Expense Modal */}
-      <AddExpenseModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAdd={async (expense) => {
-          await addExpense(expense);
-          setIsAddModalOpen(false);
-        }}
-      />
-    </main>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <StatsCard
+          title="Total Income"
+          amount={data?.totalIncome || 0}
+          currency={currency}
+          icon={<TrendingUp className="text-emerald-500" size={20} />}
+          subtext={`${currency} ${((data?.totalIncome || 0) / 12).toFixed(2)}/mo`}
+        />
+        <StatsCard
+          title="Total Expenses"
+          amount={data?.totalExpenses || 0}
+          currency={currency}
+          icon={<TrendingDown className="text-red-500" size={20} />}
+          subtext={`${currency} ${((data?.totalExpenses || 0) / 12).toFixed(2)}/mo`}
+        />
+        <StatsCard
+          title="Net P&L"
+          amount={data?.netP_L || 0}
+          currency={currency}
+          icon={<DollarSign className="text-emerald-500" size={20} />}
+          subtext={`${currency} ${((data?.netP_L || 0) / 12).toFixed(2)}/mo`}
+        />
+        <StatsCard
+          title="Annualized Net"
+          amount={data?.annualizedNet || 0}
+          currency={currency}
+          icon={<Activity className="text-blue-500" size={20} />}
+          subtext="run rate"
+        />
+      </div>
+
+      {/* Recent Transactions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RecentTransactions
+          title="Recent Income"
+          transactions={data?.recentIncome || []}
+          type="income"
+          currency={currency}
+        />
+        <RecentTransactions
+          title="Recent Expenses"
+          transactions={data?.recentExpenses || []}
+          type="expense"
+          currency={currency}
+        />
+      </div>
+    </div>
   );
 }
