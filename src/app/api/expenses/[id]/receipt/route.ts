@@ -1,30 +1,39 @@
+import { auth } from '@clerk/nextjs/server';
+import { createSupabaseClient } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = req.headers.get('user-id');
+    const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const expenseId = params.id;
+    const { id: expenseId } = await params;
     const emailTo = req.nextUrl.searchParams.get('emailTo') || 'noreply@tracker.app';
+
+    const supabase = createSupabaseClient();
+
+    // Get user from Supabase
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('clerk_id', userId)
+      .single();
+
+    if (userError || !userData) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
 
     // Get expense
     const { data: expense, error: expenseError } = await supabase
       .from('expenses')
       .select('*')
       .eq('id', expenseId)
-      .eq('user_id', userId)
+      .eq('user_id', userData.id)
       .single();
 
     if (expenseError || !expense) {
@@ -38,7 +47,7 @@ export async function POST(
       .from('receipts')
       .insert([
         {
-          user_id: userId,
+          user_id: userData.id,
           expense_id: expenseId,
           receipt_url: `https://receipts.ledger.app/${receiptNumber}`,
           emailed_to: emailTo,
