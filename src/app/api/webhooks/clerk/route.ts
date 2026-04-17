@@ -1,30 +1,30 @@
-import { Webhook } from 'svix';
+import { Webhook } from '@clerk/nextjs/server';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+);
 
 export async function POST(req: Request) {
-  // Get the headers
   const headerPayload = headers();
   const svix_id = headerPayload.get('svix-id');
   const svix_timestamp = headerPayload.get('svix-timestamp');
   const svix_signature = headerPayload.get('svix-signature');
 
-  // If there are no headers, error out
   if (!svix_id || !svix_timestamp || !svix_signature) {
-    return new Response('Error occured -- no svix headers', {
+    return new Response('Error: No svix headers', {
       status: 400,
     });
   }
 
-  // Get body
   const body = await req.text();
 
-  // Create a new Webhook instance with your signing secret
   const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET || '');
 
   let evt;
-  // Verify the webhook
   try {
     evt = wh.verify(body, {
       'svix-id': svix_id,
@@ -33,27 +33,39 @@ export async function POST(req: Request) {
     }) as any;
   } catch (err) {
     console.error('Error verifying webhook:', err);
-    return new Response('Error occured', {
+    return new Response('Error: Invalid signature', {
       status: 400,
     });
   }
 
-  const supabase = createSupabaseServerClient();
-
-  // Handle the webhook
   const eventType = evt.type;
 
   if (eventType === 'user.created') {
     const { id, email_addresses, first_name, last_name } = evt.data;
-    const email = email_addresses[0].email_address;
-    const name = `${first_name || ''} ${last_name || ''}`.trim();
+    const email = email_addresses?.[0]?.email_address || '';
+    const firstName = first_name || '';
+    const lastName = last_name || '';
 
     try {
       await supabase.from('users').insert([
         {
           clerk_id: id,
           email,
-          name: name || null,
+          first_name: firstName || null,
+          last_name: lastName || null,
+        },
+      ]);
+
+      await supabase.from('user_preferences').insert([
+        {
+          user_id: (
+            await supabase
+              .from('users')
+              .select('id')
+              .eq('clerk_id', id)
+              .single()
+          ).data?.id,
+          currency: 'USD',
         },
       ]);
     } catch (error) {
@@ -63,15 +75,17 @@ export async function POST(req: Request) {
 
   if (eventType === 'user.updated') {
     const { id, email_addresses, first_name, last_name } = evt.data;
-    const email = email_addresses[0].email_address;
-    const name = `${first_name || ''} ${last_name || ''}`.trim();
+    const email = email_addresses?.[0]?.email_address || '';
+    const firstName = first_name || '';
+    const lastName = last_name || '';
 
     try {
       await supabase
         .from('users')
         .update({
           email,
-          name: name || null,
+          first_name: firstName || null,
+          last_name: lastName || null,
         })
         .eq('clerk_id', id);
     } catch (error) {
