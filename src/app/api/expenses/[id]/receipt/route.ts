@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -12,7 +12,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const expenseId = params.id;
+    const { id: expenseId } = await params;
     const emailTo = req.nextUrl.searchParams.get('emailTo') || 'noreply@tracker.app';
 
     const supabase = createSupabaseClient();
@@ -47,13 +47,11 @@ export async function POST(
       .from('receipts')
       .insert([
         {
+          user_id: userData.id,
           expense_id: expenseId,
-          receipt_number: receiptNumber,
+          receipt_url: `https://receipts.ledger.app/${receiptNumber}`,
           emailed_to: emailTo,
-          expense_name: expense.title,
-          expense_amount: expense.amount,
-          expense_category: expense.category,
-          expense_frequency: expense.frequency,
+          emailed_at: new Date().toISOString(),
         },
       ])
       .select()
