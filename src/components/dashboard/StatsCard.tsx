@@ -1,8 +1,10 @@
+import type { ReactNode } from 'react';
+
 interface StatsCardProps {
   title: string;
   amount: number;
   currency: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   subtext: string;
 }
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useAuth } from '@clerk/nextjs';
 import { Send, Zap } from 'lucide-react';
 
 interface Message {
@@ -10,11 +9,10 @@ interface Message {
 }
 
 export default function AIAdvisorPage() {
-  const { userId } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: 'Hello! I&apos;m your AI Financial Advisor. Start a conversation to get personalized financial advice based on your actual income and expense data.',
+      content: "Hello! I'm your AI Financial Advisor. Start a conversation to get personalized financial advice based on your actual income and expense data.",
     },
   ]);
   const [input, setInput] = useState('');
@@ -26,7 +24,7 @@ export default function AIAdvisorPage() {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim() || !userId) return;
+    if (!input.trim()) return;
 
     const userMessage = input;
     setInput('');
@@ -36,10 +34,7 @@ export default function AIAdvisorPage() {
     try {
       const response = await fetch('/api/ai-advisor', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'user-id': userId,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMessage }),
       });
 

@@ -1,27 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '@clerk/nextjs';
+import { useState } from 'react';
 import { Calendar } from 'lucide-react';
 
 export default function AccountStatementPage() {
-  const { userId } = useAuth();
   const [fromDate, setFromDate] = useState(new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0]);
   const [toDate, setToDate] = useState(new Date().toISOString().split('T')[0]);
   const [statement, setStatement] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   const handleGenerate = async () => {
-    if (!userId) return;
-    
     setLoading(true);
     try {
       const response = await fetch('/api/account-statement', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'user-id': userId,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fromDate, toDate }),
       });
       if (response.ok) {

@@ -1,22 +1,26 @@
+import { auth } from '@clerk/nextjs/server';
+import { createSupabaseClient } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
-
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const userId = request.headers.get('user-id');
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const supabase = createSupabaseClient();
+
+    const { data: userData } = await supabase
+      .from('users')
+      .select('id')
+      .eq('clerk_id', userId)
+      .single();
+
+    if (!userData) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
     const { data: prefs } = await supabase
       .from('user_preferences')
       .select('currency')
-      .eq('user_id', userId)
+      .eq('user_id', userData.id)
       .single();
 
     const currency = prefs?.currency || 'USD';
@@ -24,13 +28,10 @@ export async function GET(request: NextRequest) {
     const { data: income } = await supabase
       .from('income')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', userData.id)
       .order('date', { ascending: false });
 
-    return NextResponse.json({
-      income: income || [],
-      currency,
-    });
+    return NextResponse.json({ income: income || [], currency });
   } catch (error) {
     console.error('Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -39,24 +40,32 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = request.headers.get('user-id');
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const supabase = createSupabaseClient();
+
+    const { data: userData } = await supabase
+      .from('users')
+      .select('id')
+      .eq('clerk_id', userId)
+      .single();
+
+    if (!userData) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
     const body = await request.json();
 
     const { data: incomeItem, error } = await supabase
       .from('income')
       .insert({
-        user_id: userId,
+        user_id: userData.id,
         title: body.title,
         amount: body.amount,
         category: body.category,
         date: body.date,
         frequency: body.frequency,
         description: body.description,
-        currency: 'USD',
+        currency: body.currency || 'USD',
         status: 'active',
       })
       .select()

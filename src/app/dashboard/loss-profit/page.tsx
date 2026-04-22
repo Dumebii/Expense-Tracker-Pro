@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@clerk/nextjs';
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface PLData {
   totalIncome: number;
@@ -13,18 +12,13 @@ interface PLData {
 }
 
 export default function LossProfitPage() {
-  const { userId } = useAuth();
   const [data, setData] = useState<PLData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!userId) return;
-
     async function fetchData() {
       try {
-        const response = await fetch('/api/dashboard/loss-profit', {
-          headers: { 'user-id': userId },
-        });
+        const response = await fetch('/api/dashboard/loss-profit');
         if (!response.ok) throw new Error('Failed to fetch');
         const result = await response.json();
         setData(result);
@@ -36,7 +30,7 @@ export default function LossProfitPage() {
     }
 
     fetchData();
-  }, [userId]);
+  }, []);
 
   if (loading) {
     return (

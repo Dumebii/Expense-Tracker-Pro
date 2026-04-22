@@ -1,17 +1,21 @@
+import { auth } from '@clerk/nextjs/server';
+import { createSupabaseClient } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = request.headers.get('user-id');
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const supabase = createSupabaseClient();
+
+    const { data: userData } = await supabase
+      .from('users')
+      .select('id')
+      .eq('clerk_id', userId)
+      .single();
+
+    if (!userData) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
     const body = await request.json();
     const { fromDate, toDate } = body;
@@ -19,21 +23,21 @@ export async function POST(request: NextRequest) {
     const { data: expenses } = await supabase
       .from('expenses')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', userData.id)
       .gte('date', fromDate)
       .lte('date', toDate);
 
     const { data: income } = await supabase
       .from('income')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', userData.id)
       .gte('date', fromDate)
       .lte('date', toDate);
 
     const { data: prefs } = await supabase
       .from('user_preferences')
       .select('currency')
-      .eq('user_id', userId)
+      .eq('user_id', userData.id)
       .single();
 
     const currency = prefs?.currency || 'USD';
@@ -45,7 +49,7 @@ export async function POST(request: NextRequest) {
     const { data: statement } = await supabase
       .from('account_statements')
       .insert({
-        user_id: userId,
+        user_id: userData.id,
         from_date: fromDate,
         to_date: toDate,
         total_income: totalIncome,
@@ -55,10 +59,7 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
 
-    return NextResponse.json({
-      ...statement,
-      currency,
-    });
+    return NextResponse.json({ ...statement, currency });
   } catch (error) {
     console.error('Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

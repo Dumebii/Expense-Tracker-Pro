@@ -1,55 +1,63 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { auth } from '@clerk/nextjs/server';
+import { createSupabaseClient } from '@/lib/supabase';
+import { getExchangeRates, convertAmount } from '@/lib/currency';
+import { NextResponse } from 'next/server';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
-
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const userId = request.headers.get('user-id');
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Get user preferences for currency
+    const supabase = createSupabaseClient();
+
+    const { data: userData } = await supabase
+      .from('users')
+      .select('id')
+      .eq('clerk_id', userId)
+      .single();
+
+    if (!userData) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+
     const { data: prefs } = await supabase
       .from('user_preferences')
       .select('currency')
-      .eq('user_id', userId)
+      .eq('user_id', userData.id)
       .single();
 
-    const currency = prefs?.currency || 'USD';
+    const displayCurrency = prefs?.currency || 'USD';
 
-    // Get all expenses
-    const { data: expenses } = await supabase
-      .from('expenses')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('status', 'active');
+    const [{ data: expenses }, { data: income }, rates] = await Promise.all([
+      supabase.from('expenses').select('*').eq('user_id', userData.id).eq('status', 'active'),
+      supabase.from('income').select('*').eq('user_id', userData.id).eq('status', 'active'),
+      getExchangeRates(),
+    ]);
 
-    // Get all income
-    const { data: income } = await supabase
-      .from('income')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('status', 'active');
+    const totalIncome = (income || []).reduce((sum, item) => {
+      return sum + convertAmount(item.amount, item.currency || 'USD', displayCurrency, rates);
+    }, 0);
 
-    // Calculate totals
-    const totalIncome = (income || []).reduce((sum, item) => sum + item.amount, 0);
-    const totalExpenses = (expenses || []).reduce((sum, item) => sum + item.amount, 0);
+    const totalExpenses = (expenses || []).reduce((sum, item) => {
+      return sum + convertAmount(item.amount, item.currency || 'USD', displayCurrency, rates);
+    }, 0);
+
     const netP_L = totalIncome - totalExpenses;
     const annualizedNet = netP_L * 12;
 
-    // Get recent transactions
     const recentIncome = (income || [])
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 5);
+      .slice(0, 5)
+      .map((item) => ({
+        ...item,
+        convertedAmount: convertAmount(item.amount, item.currency || 'USD', displayCurrency, rates),
+      }));
 
     const recentExpenses = (expenses || [])
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 5);
+      .slice(0, 5)
+      .map((item) => ({
+        ...item,
+        convertedAmount: convertAmount(item.amount, item.currency || 'USD', displayCurrency, rates),
+      }));
 
     return NextResponse.json({
       totalIncome,
@@ -58,7 +66,7 @@ export async function GET(request: NextRequest) {
       annualizedNet,
       recentIncome,
       recentExpenses,
-      currency,
+      currency: displayCurrency,
     });
   } catch (error) {
     console.error('Error:', error);

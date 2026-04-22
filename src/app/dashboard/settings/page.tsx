@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@clerk/nextjs';
+import { useAuth, useUser, SignOutButton } from '@clerk/nextjs';
 import { Save, LogOut } from 'lucide-react';
-import { SignOutButton } from '@clerk/nextjs';
 
 interface Preferences {
   email: string;
@@ -14,7 +13,8 @@ interface Preferences {
 }
 
 export default function SettingsPage() {
-  const { userId, user } = useAuth();
+  const { userId } = useAuth();
+  const { user } = useUser();
   const [preferences, setPreferences] = useState<Preferences>({
     email: '',
     firstName: '',
@@ -28,29 +28,25 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (!userId || !user) return;
+    const u = user; // capture narrowed value so TypeScript trusts it inside the async closure
 
     async function fetchPreferences() {
+      const email = u.emailAddresses[0]?.emailAddress || '';
+      const firstName = u.firstName || '';
+      const lastName = u.lastName || '';
       try {
-        const response = await fetch('/api/preferences', {
-          headers: { 'user-id': userId },
-        });
+        const response = await fetch('/api/preferences');
         if (response.ok) {
           const data = await response.json();
           setPreferences({
-            email: user.emailAddresses[0]?.emailAddress || '',
-            firstName: user.firstName || '',
-            lastName: user.lastName || '',
-            receiptEmail: data.receiptEmail || user.emailAddresses[0]?.emailAddress || '',
+            email,
+            firstName,
+            lastName,
+            receiptEmail: data.receiptEmail || email,
             currency: data.currency || 'USD',
           });
         } else {
-          setPreferences({
-            email: user.emailAddresses[0]?.emailAddress || '',
-            firstName: user.firstName || '',
-            lastName: user.lastName || '',
-            receiptEmail: user.emailAddresses[0]?.emailAddress || '',
-            currency: 'USD',
-          });
+          setPreferences({ email, firstName, lastName, receiptEmail: email, currency: 'USD' });
         }
       } catch (error) {
         console.error('Error fetching preferences:', error);
@@ -71,10 +67,7 @@ export default function SettingsPage() {
     try {
       const response = await fetch('/api/preferences', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'user-id': userId,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           receiptEmail: preferences.receiptEmail,
           currency: preferences.currency,
@@ -190,6 +183,7 @@ export default function SettingsPage() {
               <option value="USD">USD ($)</option>
               <option value="EUR">EUR (€)</option>
               <option value="GBP">GBP (£)</option>
+              <option value="NGN">NGN (₦)</option>
               <option value="INR">INR (₹)</option>
               <option value="JPY">JPY (¥)</option>
               <option value="AUD">AUD (A$)</option>

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@clerk/nextjs';
 import { Plus } from 'lucide-react';
 import TransactionList from '@/components/transactions/TransactionList';
 import AddTransactionModal from '@/components/transactions/AddTransactionModal';
@@ -17,20 +16,15 @@ interface Income {
 }
 
 export default function MoneyInPage() {
-  const { userId } = useAuth();
   const [income, setIncome] = useState<Income[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currency, setCurrency] = useState('USD');
 
   useEffect(() => {
-    if (!userId) return;
-
     async function fetchData() {
       try {
-        const response = await fetch('/api/income', {
-          headers: { 'user-id': userId },
-        });
+        const response = await fetch('/api/income');
         if (!response.ok) throw new Error('Failed to fetch');
         const result = await response.json();
         setIncome(result.income || []);
@@ -43,16 +37,13 @@ export default function MoneyInPage() {
     }
 
     fetchData();
-  }, [userId]);
+  }, []);
 
-  const handleAddIncome = async (data: any) => {
+  const handleAddIncome = async (data: Record<string, unknown>) => {
     try {
       const response = await fetch('/api/income', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'user-id': userId!,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       if (response.ok) {

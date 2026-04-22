@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@clerk/nextjs';
 import { TrendingUp, TrendingDown, DollarSign, Activity } from 'lucide-react';
 import StatsCard from '@/components/dashboard/StatsCard';
 import RecentTransactions from '@/components/dashboard/RecentTransactions';
@@ -16,19 +15,14 @@ interface TransactionData {
 }
 
 export default function OverviewPage() {
-  const { userId } = useAuth();
   const [data, setData] = useState<TransactionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currency, setCurrency] = useState('USD');
 
   useEffect(() => {
-    if (!userId) return;
-
     async function fetchData() {
       try {
-        const response = await fetch('/api/dashboard/summary', {
-          headers: { 'user-id': userId },
-        });
+        const response = await fetch('/api/dashboard/summary');
         if (!response.ok) throw new Error('Failed to fetch');
         const result = await response.json();
         setData(result);
@@ -41,7 +35,7 @@ export default function OverviewPage() {
     }
 
     fetchData();
-  }, [userId]);
+  }, []);
 
   if (loading) {
     return (

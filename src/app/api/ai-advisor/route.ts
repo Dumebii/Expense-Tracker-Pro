@@ -1,49 +1,38 @@
+import { auth } from '@clerk/nextjs/server';
+import { createSupabaseClient } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = request.headers.get('user-id');
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const supabase = createSupabaseClient();
+
+    const { data: userData } = await supabase
+      .from('users')
+      .select('id')
+      .eq('clerk_id', userId)
+      .single();
+
+    if (!userData) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
     const body = await request.json();
     const { message } = body;
 
-    // Get user financial data for context
     const { data: expenses } = await supabase
       .from('expenses')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', userData.id)
       .limit(10);
 
     const { data: income } = await supabase
       .from('income')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', userData.id)
       .limit(10);
 
-    // Create a mock response for now
     const response = generateFinancialAdvice(message, income || [], expenses || []);
-
-    // Save message to database
-    await supabase.from('ai_messages').insert({
-      conversation_id: 'temp', // In a real app, track conversation
-      role: 'user',
-      content: message,
-    });
-
-    await supabase.from('ai_messages').insert({
-      conversation_id: 'temp',
-      role: 'assistant',
-      content: response,
-    });
 
     return NextResponse.json({ response });
   } catch (error) {
@@ -55,10 +44,15 @@ export async function POST(request: NextRequest) {
   }
 }
 
+interface Transaction {
+  amount: number;
+  category?: string;
+}
+
 function generateFinancialAdvice(
   message: string,
-  income: any[],
-  expenses: any[]
+  income: Transaction[],
+  expenses: Transaction[]
 ): string {
   const lowerMessage = message.toLowerCase();
 

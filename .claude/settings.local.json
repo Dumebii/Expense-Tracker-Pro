@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash([ -f \"/c/Users/PC/ledger/Expense-Tracker-Pro/src/$f.tsx\" ])",
+      "Bash([ -f \"/c/Users/PC/ledger/Expense-Tracker-Pro/src/$f.ts\" ])",
+      "Bash(npm run *)",
+      "Bash(npx tsc *)",
+      "Bash(./node_modules/.bin/tsc --noEmit)"
+    ]
+  }
+}

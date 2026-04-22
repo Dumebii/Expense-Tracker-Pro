@@ -1,22 +1,26 @@
+import { auth } from '@clerk/nextjs/server';
+import { createSupabaseClient } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
-
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const userId = request.headers.get('user-id');
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const supabase = createSupabaseClient();
+
+    const { data: userData } = await supabase
+      .from('users')
+      .select('id')
+      .eq('clerk_id', userId)
+      .single();
+
+    if (!userData) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
     const { data } = await supabase
       .from('user_preferences')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', userData.id)
       .single();
 
     return NextResponse.json(data || {});
@@ -28,20 +32,28 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = request.headers.get('user-id');
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const supabase = createSupabaseClient();
+
+    const { data: userData } = await supabase
+      .from('users')
+      .select('id')
+      .eq('clerk_id', userId)
+      .single();
+
+    if (!userData) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
     const body = await request.json();
 
     const { data, error } = await supabase
       .from('user_preferences')
       .upsert({
-        user_id: userId,
+        user_id: userData.id,
         receipt_email: body.receiptEmail,
         currency: body.currency,
-        updated_at: new Date(),
+        updated_at: new Date().toISOString(),
       })
       .select()
       .single();
