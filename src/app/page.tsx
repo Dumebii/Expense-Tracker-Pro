@@ -1,10 +1,8 @@
 import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
 export default async function Home() {
   const { userId } = await auth();
-  if (userId) redirect('/dashboard');
 
   return (
     <main className="min-h-screen bg-[#050d1a] text-white overflow-x-hidden">
@@ -17,12 +15,20 @@ export default async function Home() {
             <span className="text-xl font-bold tracking-tight">Nchiko</span>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/sign-in" className="px-4 py-2 text-slate-400 hover:text-white text-sm font-medium transition-colors">
-              Sign In
-            </Link>
-            <Link href="/sign-up" className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold rounded-lg transition-colors">
-              Get Started Free
-            </Link>
+            {userId ? (
+              <Link href="/dashboard" className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold rounded-lg transition-colors">
+                Go to Dashboard →
+              </Link>
+            ) : (
+              <>
+                <Link href="/sign-in" className="px-4 py-2 text-slate-400 hover:text-white text-sm font-medium transition-colors">
+                  Sign In
+                </Link>
+                <Link href="/sign-up" className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold rounded-lg transition-colors">
+                  Get Started Free
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -57,15 +63,23 @@ export default async function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/sign-up" className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-lg rounded-xl transition-all shadow-lg shadow-emerald-500/20">
-                Start for free →
-              </Link>
-              <Link href="/sign-in" className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-lg rounded-xl transition-all">
-                Sign in
-              </Link>
+              {userId ? (
+                <Link href="/dashboard" className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-lg rounded-xl transition-all shadow-lg shadow-emerald-500/20">
+                  Go to Dashboard →
+                </Link>
+              ) : (
+                <>
+                  <Link href="/sign-up" className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-lg rounded-xl transition-all shadow-lg shadow-emerald-500/20">
+                    Start for free →
+                  </Link>
+                  <Link href="/sign-in" className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-lg rounded-xl transition-all">
+                    Sign in
+                  </Link>
+                </>
+              )}
             </div>
 
-            <p className="text-slate-500 text-sm mt-5">No credit card required.</p>
+            <p className="text-slate-500 text-sm mt-5">{userId ? 'Welcome back!' : 'No credit card required.'}</p>
           </div>
 
           {/* Mini dashboard mockup */}
@@ -295,8 +309,8 @@ export default async function Home() {
               <p className="text-slate-400 mb-8 max-w-md mx-auto">
                 Join entrepreneurs and freelancers who use Nchiko to stay on top of every naira, dollar, and pound.
               </p>
-              <Link href="/sign-up" className="inline-block px-10 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-lg rounded-xl transition-all shadow-xl shadow-emerald-500/20">
-                Get started — it&apos;s free
+              <Link href={userId ? '/dashboard' : '/sign-up'} className="inline-block px-10 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-lg rounded-xl transition-all shadow-xl shadow-emerald-500/20">
+                {userId ? 'Go to Dashboard →' : "Get started — it's free"}
               </Link>
             </div>
           </div>

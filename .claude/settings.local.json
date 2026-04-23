@@ -9,7 +9,8 @@
       "Bash(npx next *)",
       "Bash(node_modules/.bin/tsc --noEmit)",
       "Bash(echo \"Exit: $?\")",
-      "Bash(dir \"C:\\\\Users\\\\PC\\\\ledger\\\\Expense-Tracker-Pro\\\\src\\\\app\" /b)"
+      "Bash(dir \"C:\\\\Users\\\\PC\\\\ledger\\\\Expense-Tracker-Pro\\\\src\\\\app\" /b)",
+      "Bash(wait)"
     ]
   }
 }
