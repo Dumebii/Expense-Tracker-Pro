@@ -16,39 +16,52 @@ import {
 } from 'lucide-react';
 
 const navigationItems = [
-  { label: 'Overview', href: '/dashboard', icon: Home },
-  { label: 'Money In', href: '/dashboard/money-in', icon: TrendingUp },
-  { label: 'Money Out', href: '/dashboard/money-out', icon: TrendingDown },
-  { label: 'Receipts', href: '/dashboard/receipts', icon: Receipt },
-  { label: 'Loss / Profit', href: '/dashboard/loss-profit', icon: PieChart },
-  { label: 'AI Advisor', href: '/dashboard/ai-advisor', icon: Zap },
-  { label: 'Account Statement', href: '/dashboard/account-statement', icon: LayoutIcon },
+  { label: 'Overview',          href: '/dashboard',                  icon: Home },
+  { label: 'Money In',          href: '/dashboard/money-in',         icon: TrendingUp },
+  { label: 'Money Out',         href: '/dashboard/money-out',        icon: TrendingDown },
+  { label: 'Receipts',          href: '/dashboard/receipts',         icon: Receipt },
+  { label: 'Loss / Profit',     href: '/dashboard/loss-profit',      icon: PieChart },
+  { label: 'AI Advisor',        href: '/dashboard/ai-advisor',       icon: Zap },
+  { label: 'Account Statement', href: '/dashboard/account-statement',icon: LayoutIcon },
 ];
+
+function NchikoMark({ size = 40 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="40" height="40" rx="10" fill="#10b981"/>
+      {/* N letterform */}
+      <line x1="9"  y1="30" x2="9"  y2="10" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="9"  y1="10" x2="31" y2="30" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="31" y1="30" x2="31" y2="10" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+      {/* Accent dot — top-right peak */}
+      <circle cx="31" cy="10" r="3.5" fill="#f0fdf4"/>
+    </svg>
+  );
+}
 
 export default function Sidebar() {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
-    if (href === '/dashboard') {
-      return pathname === '/dashboard';
-    }
+    if (href === '/dashboard') return pathname === '/dashboard';
     return pathname.startsWith(href);
   };
 
   return (
     <div className="w-64 bg-slate-900 text-white flex flex-col h-screen sticky top-0">
       {/* Logo */}
-      <div className="p-6 border-b border-slate-700">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
-            <LayoutIcon size={24} className="text-white" />
+      <div className="p-6 border-b border-slate-700/60">
+        <Link href="/dashboard" className="flex items-center gap-3 group">
+          <NchikoMark size={40} />
+          <div>
+            <h1 className="text-xl font-bold tracking-tight leading-none">Nchiko</h1>
+            <p className="text-[10px] text-slate-400 mt-0.5 tracking-widest uppercase">Finance</p>
           </div>
-          <h1 className="text-2xl font-bold">Ledger</h1>
-        </div>
+        </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-2">
+      <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-1">
         {navigationItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
@@ -56,52 +69,46 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors ${
                 active
-                  ? 'bg-slate-700 text-white'
-                  : 'text-slate-300 hover:bg-slate-800'
+                  ? 'bg-emerald-600/20 text-emerald-400 font-semibold'
+                  : 'text-slate-400 hover:bg-slate-800 hover:text-white'
               }`}
             >
-              <Icon size={20} />
-              <span className="font-medium">{item.label}</span>
+              <Icon size={18} className={active ? 'text-emerald-400' : ''} />
+              <span className="text-sm font-medium">{item.label}</span>
+              {active && (
+                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              )}
             </Link>
           );
         })}
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-slate-700 space-y-3">
+      <div className="p-4 border-t border-slate-700/60 space-y-2">
         <Link
           href="/dashboard/settings"
-          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm font-medium ${
             isActive('/dashboard/settings')
-              ? 'bg-slate-700 text-white'
-              : 'text-slate-300 hover:bg-slate-800'
+              ? 'bg-emerald-600/20 text-emerald-400'
+              : 'text-slate-400 hover:bg-slate-800 hover:text-white'
           }`}
         >
-          <Settings size={20} />
-          <span className="font-medium">Settings</span>
+          <Settings size={18} />
+          Settings
         </Link>
 
         {/* User Profile */}
-        <div className="px-4 py-3 bg-slate-800 rounded-lg flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: 'w-8 h-8',
-                },
-              }}
-            />
-            <span className="text-sm text-slate-300 font-medium">Profile</span>
-          </div>
+        <div className="px-4 py-2.5 bg-slate-800 rounded-lg flex items-center gap-2">
+          <UserButton appearance={{ elements: { avatarBox: 'w-7 h-7' } }} />
+          <span className="text-xs text-slate-400 font-medium">My Account</span>
         </div>
 
-        {/* Sign Out */}
         <SignOutButton>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors">
-            <LogOut size={20} />
-            <span className="font-medium">Sign Out</span>
+          <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors text-sm font-medium">
+            <LogOut size={18} />
+            Sign Out
           </button>
         </SignOutButton>
       </div>

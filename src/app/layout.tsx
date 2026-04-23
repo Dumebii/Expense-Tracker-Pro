@@ -6,8 +6,12 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'Ledger - Financial Command Center',
-  description: 'Your financial command center. Track income and expenses, monitor P&L, and get AI-powered financial advice.',
+  title: 'Nchiko – Financial Command Center',
+  description: 'Track income and expenses, monitor profit & loss, generate receipts, and get AI-powered financial advice.',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+  },
 };
 
 export const viewport: Viewport = {

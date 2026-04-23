@@ -1,5 +1,6 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase';
+import { getOrCreateSupabaseUser } from '@/lib/get-user';
 import { generateReceiptHTML } from '@/lib/receipt';
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
@@ -46,14 +47,9 @@ export async function POST(
       );
     }
 
-    const supabase = createSupabaseClient();
+    const supabase = createSupabaseServerClient();
 
-    const { data: userData } = await supabase
-      .from('users')
-      .select('id')
-      .eq('clerk_id', userId)
-      .single();
-
+    const userData = await getOrCreateSupabaseUser(userId);
     if (!userData) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
     const { data: expense } = await supabase
@@ -80,6 +76,8 @@ export async function POST(
         date: expense.date,
         frequency: expense.frequency,
         description: expense.description,
+        billed_to_name: expense.billed_to_name ?? null,
+        billed_to_email: expense.billed_to_email ?? null,
       },
       user: {
         email: clerkUser?.emailAddresses?.[0]?.emailAddress ?? '',

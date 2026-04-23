@@ -5,6 +5,8 @@ interface Transaction {
   id: string;
   title: string;
   amount: number;
+  convertedAmount?: number;
+  currency?: string;
   date: string;
   category?: string;
 }
@@ -53,7 +55,11 @@ export default function RecentTransactions({
                 </p>
               </div>
               <p className={`font-semibold ${type === 'income' ? 'text-emerald-600' : 'text-red-600'}`}>
-                {type === 'income' ? '+' : '-'} {currency} {transaction.amount.toFixed(2)}
+                {type === 'income' ? '+' : '-'} {currency}{' '}
+                {(transaction.convertedAmount ?? transaction.amount).toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </p>
             </div>
           ))}

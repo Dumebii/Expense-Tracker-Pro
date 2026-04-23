@@ -6,7 +6,10 @@
       "Bash(npm run *)",
       "Bash(npx tsc *)",
       "Bash(./node_modules/.bin/tsc --noEmit)",
-      "Bash(npx next *)"
+      "Bash(npx next *)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(dir \"C:\\\\Users\\\\PC\\\\ledger\\\\Expense-Tracker-Pro\\\\src\\\\app\" /b)"
     ]
   }
 }

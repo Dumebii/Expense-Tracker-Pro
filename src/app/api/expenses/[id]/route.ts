@@ -1,5 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase';
+import { getOrCreateSupabaseUser } from '@/lib/get-user';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -13,20 +14,13 @@ export async function GET(
     }
 
     const { id } = await params;
-    const supabase = createSupabaseClient();
+    const supabase = createSupabaseServerClient();
 
-    // Get user from Supabase
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('clerk_id', userId)
-      .single();
-
-    if (userError || !userData) {
+    const userData = await getOrCreateSupabaseUser(userId);
+    if (!userData) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Get expense
     const { data: expense, error } = await supabase
       .from('expenses')
       .select('*')
@@ -61,21 +55,15 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json();
 
-    const supabase = createSupabaseClient();
+    const supabase = createSupabaseServerClient();
 
-    // Get user from Supabase
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('clerk_id', userId)
-      .single();
-
-    if (userError || !userData) {
+    const userData = await getOrCreateSupabaseUser(userId);
+    if (!userData) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Build update object with only provided fields
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (body.title !== undefined) updateData.title = body.title;
     if (body.amount !== undefined) updateData.amount = parseFloat(body.amount);
     if (body.category !== undefined) updateData.category = body.category;
@@ -87,9 +75,10 @@ export async function PATCH(
     if (body.renewal_date !== undefined) updateData.renewal_date = body.renewal_date;
     if (body.purchase_date !== undefined) updateData.purchase_date = body.purchase_date;
     if (body.notes !== undefined) updateData.notes = body.notes;
+    if (body.billed_to_name !== undefined) updateData.billed_to_name = body.billed_to_name || null;
+    if (body.billed_to_email !== undefined) updateData.billed_to_email = body.billed_to_email || null;
     updateData.updated_at = new Date().toISOString();
 
-    // Update expense
     const { data: expense, error } = await supabase
       .from('expenses')
       .update(updateData)
@@ -127,20 +116,13 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const supabase = createSupabaseClient();
+    const supabase = createSupabaseServerClient();
 
-    // Get user from Supabase
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('clerk_id', userId)
-      .single();
-
-    if (userError || !userData) {
+    const userData = await getOrCreateSupabaseUser(userId);
+    if (!userData) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Delete expense
     const { error } = await supabase
       .from('expenses')
       .delete()

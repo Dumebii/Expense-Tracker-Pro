@@ -1,5 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase';
+import { getOrCreateSupabaseUser } from '@/lib/get-user';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
@@ -9,16 +10,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = createSupabaseClient();
+    const supabase = createSupabaseServerClient();
 
-    // Get user from Supabase
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('clerk_id', userId)
-      .single();
-
-    if (userError || !userData) {
+    const userData = await getOrCreateSupabaseUser(userId);
+    if (!userData) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 

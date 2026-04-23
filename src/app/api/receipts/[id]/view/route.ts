@@ -1,5 +1,6 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase';
+import { getOrCreateSupabaseUser } from '@/lib/get-user';
 import { generateReceiptHTML } from '@/lib/receipt';
 import { NextRequest } from 'next/server';
 
@@ -12,14 +13,9 @@ export async function GET(
     if (!userId) return new Response('Unauthorized', { status: 401 });
 
     const { id } = await params;
-    const supabase = createSupabaseClient();
+    const supabase = createSupabaseServerClient();
 
-    const { data: userData } = await supabase
-      .from('users')
-      .select('id')
-      .eq('clerk_id', userId)
-      .single();
-
+    const userData = await getOrCreateSupabaseUser(userId);
     if (!userData) return new Response('User not found', { status: 404 });
 
     const { data: expense } = await supabase
@@ -37,6 +33,7 @@ export async function GET(
     const html = generateReceiptHTML({
       receiptNumber,
       generatedAt: new Date().toISOString(),
+      showPrintBar: true,
       expense: {
         id: expense.id,
         title: expense.title,
@@ -46,6 +43,8 @@ export async function GET(
         date: expense.date,
         frequency: expense.frequency,
         description: expense.description,
+        billed_to_name: expense.billed_to_name ?? null,
+        billed_to_email: expense.billed_to_email ?? null,
       },
       user: {
         email: clerkUser?.emailAddresses?.[0]?.emailAddress ?? '',
