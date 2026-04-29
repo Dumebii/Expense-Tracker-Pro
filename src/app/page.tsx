@@ -53,7 +53,7 @@ export default async function Home() {
                 where every
               </span>
               <br />
-              naira goes.
+              CENT goes.
             </h1>
 
             <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
