@@ -146,13 +146,10 @@ export async function GET(req: Request) {
   try {
     const supabase = createSupabaseServerClient();
 
-    // Fetch all active recurring expenses with their user data
+    // Fetch all active recurring expenses
     const { data: expenses, error } = await supabase
       .from('expenses')
-      .select(`
-        id, title, amount, currency, category, date, frequency, status,
-        users!inner(id, email, first_name, last_name)
-      `)
+      .select('id, title, amount, currency, category, date, frequency, user_id')
       .eq('status', 'active')
       .in('frequency', ['monthly', 'annually']);
 
@@ -162,6 +159,9 @@ export async function GET(req: Request) {
     let sent = 0;
     let skipped = 0;
 
+    // Cache user lookups to avoid duplicate queries per user
+    const userCache: Record<string, { email: string; first_name: string | null; last_name: string | null } | null> = {};
+
     for (const expense of expenses || []) {
       const nextRenewal = getNextRenewalDate(expense.date, expense.frequency);
       if (!nextRenewal) { skipped++; continue; }
@@ -169,7 +169,16 @@ export async function GET(req: Request) {
       const days = daysFromNow(nextRenewal);
       if (days !== REMINDER_DAYS) { skipped++; continue; }
 
-      const user = Array.isArray(expense.users) ? expense.users[0] : expense.users;
+      // Fetch user (with cache to avoid N+1 per user)
+      if (!(expense.user_id in userCache)) {
+        const { data } = await supabase
+          .from('users')
+          .select('email, first_name, last_name')
+          .eq('id', expense.user_id)
+          .single();
+        userCache[expense.user_id] = data;
+      }
+      const user = userCache[expense.user_id];
       if (!user?.email) { skipped++; continue; }
 
       const userName = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'there';

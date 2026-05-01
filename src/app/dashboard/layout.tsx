@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
+import RenewalAlertBanner from '@/components/dashboard/RenewalAlertBanner';
 
 export default function DashboardLayout({
   children,
@@ -33,6 +34,7 @@ export default function DashboardLayout({
     <div className="flex min-h-screen bg-slate-50">
       <Sidebar />
       <main className="flex-1 overflow-auto">
+        <RenewalAlertBanner />
         {children}
       </main>
     </div>
