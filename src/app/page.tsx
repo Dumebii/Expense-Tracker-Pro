@@ -1,5 +1,88 @@
 import { auth } from '@clerk/nextjs/server';
 import Link from 'next/link';
+import {
+  LayoutDashboard,
+  TrendingUp,
+  TrendingDown,
+  Receipt,
+  BarChart2,
+  BrainCircuit,
+  FileSpreadsheet,
+  BellRing,
+  DollarSign,
+  Sparkles,
+  FileText,
+  Smartphone,
+  Download,
+  type LucideIcon,
+} from 'lucide-react';
+
+type FeatureCard = {
+  icon: LucideIcon;
+  iconColor: string;
+  title: string;
+  desc: string;
+  color: string;
+};
+
+const FEATURES: FeatureCard[] = [
+  {
+    icon: LayoutDashboard,
+    iconColor: 'text-blue-400',
+    title: 'Overview Dashboard',
+    desc: 'See total income, expenses, net P&L, and your annualized run rate at a glance.',
+    color: 'from-blue-500/10 to-blue-600/5 border-blue-500/20',
+  },
+  {
+    icon: TrendingUp,
+    iconColor: 'text-emerald-400',
+    title: 'Money In',
+    desc: 'Log every income source — salary, freelance, investments — with full currency support.',
+    color: 'from-emerald-500/10 to-emerald-600/5 border-emerald-500/20',
+  },
+  {
+    icon: TrendingDown,
+    iconColor: 'text-red-400',
+    title: 'Money Out',
+    desc: 'Track subscriptions, one-off costs, and recurring expenses with renewal reminders.',
+    color: 'from-red-500/10 to-red-600/5 border-red-500/20',
+  },
+  {
+    icon: Receipt,
+    iconColor: 'text-amber-400',
+    title: 'Receipts',
+    desc: 'Generate branded receipts instantly. Download as PDF or email directly to clients.',
+    color: 'from-amber-500/10 to-amber-600/5 border-amber-500/20',
+  },
+  {
+    icon: BarChart2,
+    iconColor: 'text-purple-400',
+    title: 'Loss / Profit',
+    desc: 'Visual category breakdowns and P&L charts to understand where money moves.',
+    color: 'from-purple-500/10 to-purple-600/5 border-purple-500/20',
+  },
+  {
+    icon: BrainCircuit,
+    iconColor: 'text-teal-400',
+    title: 'AI Advisor',
+    desc: 'Ask questions about your finances. Get personalised, data-driven advice.',
+    color: 'from-teal-500/10 to-teal-600/5 border-teal-500/20',
+  },
+  {
+    icon: FileSpreadsheet,
+    iconColor: 'text-indigo-400',
+    title: 'Account Statement',
+    desc: 'Generate detailed statements for any date range — useful for tax season.',
+    color: 'from-indigo-500/10 to-indigo-600/5 border-indigo-500/20',
+  },
+  {
+    icon: BellRing,
+    iconColor: 'text-orange-400',
+    title: 'Renewal Reminders',
+    desc: 'Get email alerts 5 days before any subscription or recurring expense renews.',
+    color: 'from-orange-500/10 to-orange-600/5 border-orange-500/20',
+  },
+];
 
 export default async function Home() {
   const { userId } = await auth();
@@ -43,7 +126,6 @@ export default async function Home() {
           <div className="text-center mb-16">
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-sm font-medium mb-8">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               Multi-currency · AI-powered · Real-time insights
             </div>
 
@@ -191,62 +273,18 @@ export default async function Home() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {[
-              {
-                emoji: '📊',
-                title: 'Overview Dashboard',
-                desc: 'See total income, expenses, net P&L, and your annualized run rate at a glance.',
-                color: 'from-blue-500/10 to-blue-600/5 border-blue-500/20',
-              },
-              {
-                emoji: '💰',
-                title: 'Money In',
-                desc: 'Log every income source — salary, freelance, investments — with full currency support.',
-                color: 'from-emerald-500/10 to-emerald-600/5 border-emerald-500/20',
-              },
-              {
-                emoji: '💳',
-                title: 'Money Out',
-                desc: 'Track subscriptions, one-off costs, and recurring expenses with renewal reminders.',
-                color: 'from-red-500/10 to-red-600/5 border-red-500/20',
-              },
-              {
-                emoji: '🧾',
-                title: 'Receipts',
-                desc: 'Generate branded receipts instantly. Download as PDF or email directly to clients.',
-                color: 'from-amber-500/10 to-amber-600/5 border-amber-500/20',
-              },
-              {
-                emoji: '📈',
-                title: 'Loss / Profit',
-                desc: 'Visual category breakdowns and P&L charts to understand where money moves.',
-                color: 'from-purple-500/10 to-purple-600/5 border-purple-500/20',
-              },
-              {
-                emoji: '🤖',
-                title: 'AI Advisor',
-                desc: 'Ask questions about your finances. Get personalised, data-driven advice.',
-                color: 'from-teal-500/10 to-teal-600/5 border-teal-500/20',
-              },
-              {
-                emoji: '📋',
-                title: 'Account Statement',
-                desc: 'Generate detailed statements for any date range — useful for tax season.',
-                color: 'from-indigo-500/10 to-indigo-600/5 border-indigo-500/20',
-              },
-              {
-                emoji: '🔔',
-                title: 'Renewal Reminders',
-                desc: 'Get email alerts 5 days before any subscription or recurring expense renews.',
-                color: 'from-orange-500/10 to-orange-600/5 border-orange-500/20',
-              },
-            ].map((f) => (
-              <div key={f.title} className={`bg-gradient-to-br ${f.color} border rounded-2xl p-6 hover:-translate-y-1 transition-transform duration-200`}>
-                <div className="text-3xl mb-4">{f.emoji}</div>
-                <h3 className="text-white font-semibold text-base mb-2">{f.title}</h3>
-                <p className="text-slate-400 text-sm leading-relaxed">{f.desc}</p>
-              </div>
-            ))}
+            {FEATURES.map((f) => {
+              const Icon = f.icon;
+              return (
+                <div key={f.title} className={`bg-gradient-to-br ${f.color} border rounded-2xl p-6 hover:-translate-y-1 transition-transform duration-200`}>
+                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-4">
+                    <Icon size={20} className={f.iconColor} />
+                  </div>
+                  <h3 className="text-white font-semibold text-base mb-2">{f.title}</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed">{f.desc}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -279,20 +317,127 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ── Stats ──────────────────────────────────────────────────── */}
+      {/* ── Why Nchiko ─────────────────────────────────────────────── */}
       <section className="py-20 px-6">
-        <div className="max-w-4xl mx-auto grid sm:grid-cols-3 gap-8 text-center">
-          {[
-            { value: '7',       label: 'Currencies supported',      sub: 'USD, NGN, GBP, EUR, INR, JPY, AUD' },
-            { value: '8',       label: 'Dashboard modules',          sub: 'From receipts to AI insights' },
-            { value: '5 days',  label: 'Renewal alerts in advance',  sub: 'Never miss a subscription charge' },
-          ].map((s) => (
-            <div key={s.label}>
-              <p className="text-5xl font-black text-emerald-400 mb-2">{s.value}</p>
-              <p className="text-white font-semibold mb-1">{s.label}</p>
-              <p className="text-slate-500 text-sm">{s.sub}</p>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-white">Not another spreadsheet</h2>
+            <p className="text-slate-400 mt-3 max-w-xl mx-auto">
+              Built for people who run their own show — not corporate finance teams.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-6">
+            {[
+              {
+                icon: DollarSign,
+                color: 'text-emerald-400',
+                title: 'Multi-currency by default',
+                desc: 'Log in NGN, USD, GBP, or EUR. Live exchange rates convert everything to your base currency automatically — no plugins, no premium tier.',
+              },
+              {
+                icon: Sparkles,
+                color: 'text-teal-400',
+                title: 'AI that knows your books',
+                desc: 'Ask your AI Advisor about your actual transactions. Not generic budgeting tips — answers grounded in your specific numbers.',
+              },
+              {
+                icon: FileText,
+                color: 'text-indigo-400',
+                title: 'Client-ready in seconds',
+                desc: 'Generate a professional receipt or account statement from your real data. Download as PDF or send it by email — straight from the dashboard.',
+              },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.title} className="bg-white/[0.03] border border-white/10 rounded-2xl p-6">
+                  <Icon className={`${item.color} mb-4`} size={24} />
+                  <h3 className="text-white font-semibold mb-2">{item.title}</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Get the App ────────────────────────────────────────────── */}
+      <section className="py-24 px-6 bg-white/[0.02] border-y border-white/5">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-col lg:flex-row items-center gap-12">
+
+            {/* Left — copy */}
+            <div className="flex-1 text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-sm font-medium mb-6">
+                <Smartphone size={14} />
+                Available on Android
+              </div>
+              <h2 className="text-4xl font-bold text-white mb-4">
+                Nchiko in your pocket
+              </h2>
+              <p className="text-slate-400 text-lg mb-8 leading-relaxed">
+                Track income and expenses on the go. Log a payment the moment it happens — no waiting until you&apos;re back at your desk.
+              </p>
+
+              {/* Download buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+                <a
+                  href="/downloads/nchiko.apk"
+                  download
+                  className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-xl transition-all shadow-lg shadow-emerald-500/20"
+                >
+                  <Download size={18} />
+                  Download for Android
+                </a>
+                <div className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 bg-white/5 border border-white/10 text-slate-500 font-semibold rounded-xl cursor-not-allowed select-none">
+                  <Smartphone size={18} />
+                  iOS — coming soon
+                </div>
+              </div>
+
+              <p className="text-slate-600 text-xs mt-4">
+                Android 7.0+. Free to download.
+              </p>
             </div>
-          ))}
+
+            {/* Right — install guide */}
+            <div className="w-full lg:w-80 shrink-0">
+              <div className="bg-[#0d1f35] border border-white/10 rounded-2xl p-6">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-5">
+                  How to install
+                </p>
+                <ol className="space-y-5">
+                  {[
+                    {
+                      n: '1',
+                      title: 'Download the APK',
+                      desc: 'Tap the button and save the file to your phone.',
+                    },
+                    {
+                      n: '2',
+                      title: 'Allow installation',
+                      desc: 'When prompted, tap "Settings" and enable Install unknown apps for your browser.',
+                    },
+                    {
+                      n: '3',
+                      title: 'Open and sign in',
+                      desc: 'Tap the downloaded file, install, then sign in with your Nchiko account.',
+                    },
+                  ].map((step) => (
+                    <li key={step.n} className="flex gap-4">
+                      <span className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                        {step.n}
+                      </span>
+                      <div>
+                        <p className="text-white text-sm font-semibold mb-0.5">{step.title}</p>
+                        <p className="text-slate-400 text-xs leading-relaxed">{step.desc}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+
+          </div>
         </div>
       </section>
 

@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
   LayoutIcon,
+  X,
 } from 'lucide-react';
 
 const navigationItems = [
@@ -29,17 +30,20 @@ function NchikoMark({ size = 40 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="40" height="40" rx="10" fill="#10b981"/>
-      {/* N letterform */}
-      <line x1="9"  y1="30" x2="9"  y2="10" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
-      <line x1="9"  y1="10" x2="31" y2="30" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
-      <line x1="31" y1="30" x2="31" y2="10" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
-      {/* Accent dot — top-right peak */}
+      <line x1="9"  y1="30" x2="9"  y2="10" stroke="white" strokeWidth="3.5" strokeLinecap="round"/>
+      <line x1="9"  y1="10" x2="31" y2="30" stroke="white" strokeWidth="3.5" strokeLinecap="round"/>
+      <line x1="31" y1="30" x2="31" y2="10" stroke="white" strokeWidth="3.5" strokeLinecap="round"/>
       <circle cx="31" cy="10" r="3.5" fill="#f0fdf4"/>
     </svg>
   );
 }
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
@@ -48,16 +52,30 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-64 bg-slate-900 text-white flex flex-col h-screen sticky top-0">
+    <div
+      className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col
+        transform transition-transform duration-200 ease-in-out
+        md:static md:translate-x-0 md:z-auto
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}
+    >
       {/* Logo */}
-      <div className="p-6 border-b border-slate-700/60">
-        <Link href="/dashboard" className="flex items-center gap-3 group">
+      <div className="p-6 border-b border-slate-700/60 flex items-center justify-between">
+        <Link href="/dashboard" className="flex items-center gap-3 group" onClick={onClose}>
           <NchikoMark size={40} />
           <div>
             <h1 className="text-xl font-bold tracking-tight leading-none">Nchiko</h1>
             <p className="text-[10px] text-slate-400 mt-0.5 tracking-widest uppercase">Finance</p>
           </div>
         </Link>
+        <button
+          onClick={onClose}
+          className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          aria-label="Close menu"
+        >
+          <X size={18} />
+        </button>
       </div>
 
       {/* Navigation */}
@@ -69,6 +87,7 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors ${
                 active
                   ? 'bg-emerald-600/20 text-emerald-400 font-semibold'
@@ -89,6 +108,7 @@ export default function Sidebar() {
       <div className="p-4 border-t border-slate-700/60 space-y-2">
         <Link
           href="/dashboard/settings"
+          onClick={onClose}
           className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm font-medium ${
             isActive('/dashboard/settings')
               ? 'bg-emerald-600/20 text-emerald-400'

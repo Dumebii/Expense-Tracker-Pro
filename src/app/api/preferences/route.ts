@@ -19,7 +19,7 @@ export async function GET() {
       .eq('user_id', userData.id)
       .single();
 
-    return NextResponse.json(data || {});
+    return NextResponse.json({ ...(data || {}), webhookId: userData.id });
   } catch (error) {
     console.error('Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

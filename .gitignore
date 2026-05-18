@@ -21,6 +21,9 @@ tsconfig.base.json
 # production
 /build
 
+# APK builds — drop nchiko.apk into public/downloads/ manually after building
+/public/downloads/*.apk
+
 # misc
 .DS_Store
 *.pem

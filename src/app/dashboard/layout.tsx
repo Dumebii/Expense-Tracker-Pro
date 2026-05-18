@@ -2,7 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Menu } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import RenewalAlertBanner from '@/components/dashboard/RenewalAlertBanner';
 
@@ -13,6 +14,7 @@ export default function DashboardLayout({
 }) {
   const { isLoaded, userId } = useAuth();
   const router = useRouter();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (isLoaded && !userId) {
@@ -32,11 +34,34 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <Sidebar />
-      <main className="flex-1 overflow-auto">
-        <RenewalAlertBanner />
-        {children}
-      </main>
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Mobile header */}
+        <header className="md:hidden flex items-center gap-3 px-4 h-14 bg-white border-b border-slate-200 shrink-0">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+            aria-label="Open menu"
+          >
+            <Menu size={20} />
+          </button>
+          <span className="font-semibold text-slate-800 text-sm">Nchiko</span>
+        </header>
+
+        <main className="flex-1 overflow-auto">
+          <RenewalAlertBanner />
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
