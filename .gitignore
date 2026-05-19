@@ -24,6 +24,14 @@ tsconfig.base.json
 # APK builds — drop nchiko.apk into public/downloads/ manually after building
 /public/downloads/*.apk
 
+# next-pwa generated service worker files (built automatically on deploy)
+/public/sw.js
+/public/sw.js.map
+/public/workbox-*.js
+/public/workbox-*.js.map
+/public/worker-*.js
+/public/worker-*.js.map
+
 # misc
 .DS_Store
 *.pem

@@ -8,9 +8,16 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 export const metadata: Metadata = {
   title: 'Nchiko – Financial Command Center',
   description: 'Track income and expenses, monitor profit & loss, generate receipts, and get AI-powered financial advice.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Nchiko',
+  },
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
+    apple: '/icons/icon-180.png',
   },
 };
 
@@ -19,6 +26,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: '#10b981',
 };
 
 export default function RootLayout({
