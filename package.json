@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
+    "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/typography": "^0.5.15",
     "@types/node": "^20.0.0",
     "@types/nodemailer": "^6.4.0",
