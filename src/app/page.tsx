@@ -13,9 +13,9 @@ import {
   Sparkles,
   FileText,
   Smartphone,
-  Download,
   type LucideIcon,
 } from 'lucide-react';
+import AppInstallButton from '@/components/AppInstallButton';
 
 type FeatureCard = {
   icon: LucideIcon;
@@ -378,24 +378,11 @@ export default async function Home() {
                 Track income and expenses on the go. Log a payment the moment it happens — no waiting until you&apos;re back at your desk.
               </p>
 
-              {/* Download buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-                <a
-                  href="/downloads/nchiko.apk"
-                  download
-                  className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-xl transition-all shadow-lg shadow-emerald-500/20"
-                >
-                  <Download size={18} />
-                  Download for Android
-                </a>
-                <div className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 bg-white/5 border border-white/10 text-slate-500 font-semibold rounded-xl cursor-not-allowed select-none">
-                  <Smartphone size={18} />
-                  iOS — coming soon
-                </div>
-              </div>
+              {/* Install button — client component handles Android/iOS/desktop */}
+              <AppInstallButton />
 
               <p className="text-slate-600 text-xs mt-4">
-                Android 7.0+. Free to download.
+                Free. No app store required.
               </p>
             </div>
 
