@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
 import { Inter } from 'next/font/google';
+import InstallPrompt from '@/components/InstallPrompt';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -39,6 +40,7 @@ export default function RootLayout({
       <html lang="en" className={`${inter.variable}`}>
         <body className="bg-slate-50 text-slate-900">
           {children}
+          <InstallPrompt />
         </body>
       </html>
     </ClerkProvider>
