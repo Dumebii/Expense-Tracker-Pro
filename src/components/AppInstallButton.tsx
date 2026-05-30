@@ -82,7 +82,7 @@ export default function AppInstallButton() {
     );
   }
 
-  // Android / Desktop Chrome — show install button if prompt is available
+  // Android / Desktop Chrome — install prompt is available
   if (installEvent) {
     return (
       <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
@@ -94,28 +94,20 @@ export default function AppInstallButton() {
           <Download size={18} />
           {installing ? 'Installing…' : 'Install the App'}
         </button>
-        <div className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 bg-white/5 border border-white/10 text-slate-500 font-semibold rounded-xl cursor-not-allowed select-none">
-          <Smartphone size={18} />
-          iOS — coming soon
-        </div>
       </div>
     );
   }
 
-  // Fallback: prompt not available yet (desktop or not triggered)
+  // Fallback: prompt not available (already installed, or not yet triggered)
   return (
     <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
       <a
         href="/dashboard"
         className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-xl transition-all shadow-lg shadow-emerald-500/20"
       >
-        <Download size={18} />
+        <Smartphone size={18} />
         Open the App
       </a>
-      <div className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 bg-white/5 border border-white/10 text-slate-500 font-semibold rounded-xl cursor-not-allowed select-none">
-        <Smartphone size={18} />
-        iOS — coming soon
-      </div>
     </div>
   );
 }

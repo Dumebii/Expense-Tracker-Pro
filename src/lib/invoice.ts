@@ -369,8 +369,8 @@ export function generateInvoiceHTML(data: InvoiceData): string {
       </div>
       <div class="footer-brand">
         <span class="footer-brand-left">
-          Powered by <a href="https://ozigi.app" target="_blank" rel="noopener noreferrer">Ozigi</a>
-          &nbsp;&bull;&nbsp; Financial tools for entrepreneurs
+          Powered by <a href="https://ozigi.app" target="_blank" rel="noopener noreferrer">Ozigi GTM</a>
+          &nbsp;&mdash;&nbsp; the all-in-one GTM suite for teams that want to make an impact.
         </span>
         <a href="https://nchiko.ozigi.app/sign-up" target="_blank" rel="noopener noreferrer" class="footer-brand-cta">
           Try Nchiko free →
