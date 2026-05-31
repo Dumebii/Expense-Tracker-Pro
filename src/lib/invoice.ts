@@ -196,7 +196,7 @@ export function generateInvoiceHTML(data: InvoiceData): string {
     .info-text { font-size: 13px; color: #475569; line-height: 1.7; white-space: pre-line; }
     /* ── Footer ── */
     .invoice-footer {
-      padding: 16px 36px 0;
+      padding: 16px 36px;
       background: #f8fafc;
       border-top: 1px solid #e2e8f0;
     }
@@ -206,37 +206,21 @@ export function generateInvoiceHTML(data: InvoiceData): string {
       justify-content: space-between;
       font-size: 12px;
       color: #94a3b8;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .footer-brand {
-      background: #0f172a;
-      margin: 0 -36px;
-      padding: 12px 36px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+      text-align: center;
+      font-size: 10px;
+      color: #cbd5e1;
+      padding-top: 8px;
+      border-top: 1px solid #f1f5f9;
     }
-    .footer-brand-left {
-      font-size: 12px;
+    .footer-brand a {
       color: #94a3b8;
-    }
-    .footer-brand-left a {
-      color: #10b981;
-      font-weight: 700;
       text-decoration: none;
     }
-    .footer-brand-cta {
-      display: inline-block;
-      padding: 5px 14px;
-      background: #10b981;
-      color: white;
-      font-size: 11px;
-      font-weight: 700;
-      text-decoration: none;
-      border-radius: 999px;
-      letter-spacing: 0.2px;
-      white-space: nowrap;
+    .footer-brand a:hover {
+      text-decoration: underline;
     }
     /* ── Print bar ── */
     .print-bar {
@@ -368,13 +352,7 @@ export function generateInvoiceHTML(data: InvoiceData): string {
         <span>#${invoiceNumber}</span>
       </div>
       <div class="footer-brand">
-        <span class="footer-brand-left">
-          Powered by <a href="https://ozigi.app" target="_blank" rel="noopener noreferrer">Ozigi GTM</a>
-          &nbsp;&mdash;&nbsp; the all-in-one GTM suite for teams that want to make an impact.
-        </span>
-        <a href="https://nchiko.ozigi.app/sign-up" target="_blank" rel="noopener noreferrer" class="footer-brand-cta">
-          Try Nchiko free →
-        </a>
+        Powered by <a href="https://ozigi.app" target="_blank" rel="noopener noreferrer">Ozigi GTM</a> &mdash; the all-in-one GTM suite for teams that want to make an impact. &middot; <a href="https://nchiko.ozigi.app/sign-up" target="_blank" rel="noopener noreferrer">Try Nchiko free</a>
       </div>
     </div>
 

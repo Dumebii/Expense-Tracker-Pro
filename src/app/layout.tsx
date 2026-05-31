@@ -4,7 +4,10 @@ import { Inter } from 'next/font/google';
 import InstallPrompt from '@/components/InstallPrompt';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Nchiko – Financial Command Center',
@@ -37,7 +40,7 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="en" className={`${inter.variable}`}>
+      <html lang="en" className={inter.className}>
         <body className="bg-slate-50 text-slate-900">
           {children}
           <InstallPrompt />
